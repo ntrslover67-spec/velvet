@@ -1,6 +1,6 @@
 // Keeps the app shell cached so Velvet opens instantly and offline.
 // Network first, so a new upload shows up the next time the app is opened online.
-const CACHE = 'velvet-v2';
+const CACHE = 'velvet-v3';
 const SHELL = ['./', './index.html', './characters.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

@@ -111,6 +111,32 @@ a{color:var(--accent)}
 .chatrow small{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chatrow .icon-btn svg{width:19px;height:19px;color:var(--dim)}
 
+/* groups */
+.gav{position:relative;display:inline-block;flex-shrink:0}
+.gav .gsub{position:absolute;width:68%;height:68%;font-size:.62em;border:2px solid var(--bg)}
+.gav .gsub:first-child{left:0;top:0}
+.gav .gsub:last-child{right:0;bottom:0}
+.gav .gsub:only-child{width:100%;height:100%;border:0}
+.av24{width:24px;height:24px;font-size:11px}
+.speakers{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.speakers::-webkit-scrollbar{display:none}
+.speakers>small{color:var(--dim);font-size:12px;flex-shrink:0;padding-left:2px}
+.spk{display:flex;align-items:center;gap:6px;flex-shrink:0;padding:3px 11px 3px 3px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.spk:active{background:var(--panel2);color:var(--text)}
+.pick{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:8px 6px;border-radius:12px}
+.pick>span:not(.av){flex:1;min-width:0;display:flex;flex-direction:column}
+.pick small{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button.pick:active{background:var(--panel2)}
+.pick .icon-btn{font-size:24px;color:var(--dim)}
+
+/* pictures */
+.bubble.picb{padding:5px}
+.pic{display:block;width:min(270px,100%);border-radius:13px}
+.painting{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;padding:8px 10px}
+.pic-btn{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:8px 14px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font-size:14px;font-weight:600}
+.pic-btn small{color:var(--dim);font-weight:500}
+.pic-btn:disabled{opacity:.6}
+
 /* chat */
 .bg-wrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
 .chat-bg{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(44px) saturate(1.2);opacity:.22}
@@ -258,7 +284,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <script src="characters.js"></script>
 <script>
 'use strict';
-const VERSION = '2.0';
+const VERSION = '2.1';
 const OR_URL = 'https://openrouter.ai/api/v1';
 const LIBRARY = Array.isArray(window.VELVET_LIBRARY) ? window.VELVET_LIBRARY : [];
 const app = document.getElementById('app');
@@ -301,6 +327,9 @@ const ICON = {
   more: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
   list: svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
   share: svg('<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/>'),
+  group: svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.2a5.5 5.5 0 0 1 6 5.8"/>'),
+  camera: svg('<path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/>'),
+  image: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'),
 };
 
 /* ---------- defaults ---------- */
@@ -326,6 +355,7 @@ const DEFAULT_SETTINGS = {
   avoid: DEFAULT_AVOID, autoMemory: true,
   userName: 'You', userPersona: '', systemPrompt: DEFAULT_SYSTEM,
   textSize: 'm', ttsAuto: false, ttsActions: false, lockHash: '',
+  imageModel: 'black-forest-labs/flux-3-image-klein', imageStyle: 'match',
 };
 const LENGTHS = { short: 'keep it short: one brief paragraph or a few lines', medium: 'about two or three paragraphs', long: 'a long, richly detailed reply of four or more paragraphs' };
 const LEN_LABEL = { auto: 'Auto', short: 'Short', medium: 'Medium', long: 'Long' };
@@ -339,7 +369,7 @@ const STEER_PRESETS = [
   ['Softer', 'Be softer, warmer and more affectionate.'],
   ['Take charge', '{{char}} takes the lead and makes the next move.'],
 ];
-const CATS = ['All', 'Anime', 'Fantasy', 'Realistic', 'Sci-fi', 'Supernatural', 'Female', 'Male', 'Non-binary', 'Dominant', 'Submissive', 'Slow burn', 'Comedy', 'Wholesome'];
+const CATS = ['All', 'Anime', 'Fantasy', 'Realistic', 'Sci-fi', 'Supernatural', 'Adventure', 'Female', 'Male', 'Non-binary', 'Dominant', 'Submissive', 'Slow burn', 'Comedy', 'Wholesome'];
 const TEXT_SIZES = { s: '15px', m: '16px', l: '18px', xl: '20px' };
 
 /* ---------- storage (IndexedDB key/value) ---------- */
@@ -378,7 +408,7 @@ const saveSettingsSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout
 const state = {
   settings: { ...DEFAULT_SETTINGS }, chars: [], chats: {}, drafts: {}, view: '', current: null,
   busy: false, abort: null, lastError: null, sheet: null, suggestions: null, filter: 'All', query: '',
-  summarizing: new Set(), hiddenAt: 0, ttsPrimed: false,
+  summarizing: new Set(), hiddenAt: 0, ttsPrimed: false, libImages: {}, portraitRun: false,
 };
 
 /* ---------- helpers ---------- */
@@ -414,6 +444,56 @@ function avatarHtml(c, cls) {
   const inner = c.emoji ? `<i class="emo">${esc(c.emoji)}</i>` : esc(((c.name || '?').trim()[0] || '?').toUpperCase());
   return `<span class="av ${cls}" style="${gradCss(c)}">${inner}</span>`;
 }
+
+/* group helpers: a group is stored like a character with group:true and a list of member ids */
+const TITLES = /^(captain|capt\.?|lady|lord|dr\.?|doctor|ms\.?|mr\.?|mrs\.?|sir|madam)$/i;
+function nameTokens(c) {
+  const out = [];
+  for (const w of c.name.split(/\s+/)) {
+    if (TITLES.test(w)) continue;
+    if (w.length >= 3) out.push(w);
+    const bare = w.replace(/[^\p{L}].*$/u, '');
+    if (bare !== w && bare.length >= 3) out.push(bare);
+  }
+  return out;
+}
+const callName = c => nameTokens(c)[0] || c.name.split(' ')[0];
+const groupOf = chat => { const g = chat && charById(chat.charId); return g && g.group ? g : null; };
+const membersOf = g => g.members.map(charById).filter(Boolean);
+const memberNames = (g, full) => membersOf(g).map(m => (full ? m.name : callName(m))).join(', ');
+const speakerOf = (m, c) => (m.role === 'assistant' && m.speaker && charById(m.speaker)) || c;
+const subtitle = (chat, c) => (c.group ? memberNames(c) : chat.title !== 'Main' && chat.title !== 'Chat' ? chat.title : c.tagline);
+function groupAvatar(members, cls) {
+  const ms = members.slice(0, 2);
+  if (!ms.length) return avatarHtml({ name: '?', emoji: '👥', colors: [270, 330] }, cls);
+  return `<span class="gav ${cls}">${ms.map(m => avatarHtml(m, 'gsub')).join('')}</span>`;
+}
+const charAvatar = (c, cls) => (c.group ? groupAvatar(membersOf(c), cls) : avatarHtml(c, cls));
+
+// who answers in a group: anyone you named, otherwise depends on the group's reply style
+function pickResponders(g, chat, text) {
+  const members = membersOf(g);
+  if (!members.length) return [];
+  const pos = m => {
+    let best = -1;
+    for (const tok of nameTokens(m)) {
+      const r = new RegExp(`(^|[^\\p{L}])${escRe(tok)}(?=$|[^\\p{L}])`, 'iu').exec(text || '');
+      if (r && (best < 0 || r.index < best)) best = r.index;
+    }
+    return best;
+  };
+  const named = members.map(m => [m, pos(m)]).filter(x => x[1] >= 0).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+  if (named.length) return named.slice(0, 3);
+  const spoke = chat.messages.filter(m => m.role === 'assistant' && m.speaker).map(m => m.speaker);
+  const order = [...members].sort((a, b) => spoke.lastIndexOf(a.id) - spoke.lastIndexOf(b.id)); // longest-quiet first
+  if (g.replyMode === 'all') return order;
+  if (g.replyMode === 'one') return order.slice(0, 1);
+  const lastSp = members.find(m => m.id === last(spoke));
+  const fresh = order.filter(m => m !== lastSp);
+  const primary = lastSp && Math.random() < 0.5 ? lastSp : fresh[0] || order[0];
+  const second = fresh.find(m => m !== primary);
+  return second && Math.random() < 0.4 ? [primary, second] : [primary];
+}
 function ago(ts) {
   if (!ts) return '';
   const d = (Date.now() - ts) / 1000;
@@ -424,14 +504,14 @@ function ago(ts) {
   return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 let toastTimer;
-function toast(msg, err) {
+function toast(msg, err, ms) { // ms === 0 keeps it up until the next toast
   let t = $('#toast');
   if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.append(t); t.onclick = () => t.classList.remove('show'); }
   t.textContent = msg;
   t.classList.toggle('err', !!err);
   requestAnimationFrame(() => t.classList.add('show'));
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), err ? 5500 : 2200);
+  if (ms !== 0) toastTimer = setTimeout(() => t.classList.remove('show'), ms || (err ? 5500 : 2200));
 }
 function niceError(e) {
   if (e.name === 'AbortError') return 'Stopped';
@@ -467,8 +547,8 @@ function pickFile(accept, cb) {
 function copyText(t) {
   (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Copied'), () => toast("Couldn't copy", true));
 }
-async function shareFile(text, name, type) {
-  const blob = new Blob([text], { type });
+async function shareFile(data, name, type) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type });
   const file = new File([blob], name, { type });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
@@ -482,6 +562,125 @@ async function shareFile(text, name, type) {
 }
 const applyTextSize = () => document.documentElement.style.setProperty('--fs', TEXT_SIZES[state.settings.textSize] || '16px');
 
+/* ---------- pictures (OpenRouter image API, nothing runs on the phone) ---------- */
+const DEFAULT_IMAGE_MODEL = 'black-forest-labs/flux-3-image-klein';
+const ART_STYLES = {
+  anime: 'anime illustration, clean lineart, vibrant colors, beautiful detailed eyes, high quality',
+  painted: 'semi-realistic digital painting, detailed, cinematic lighting, high quality',
+  photo: 'photorealistic portrait photograph, 85mm lens, shallow depth of field, natural skin texture, soft studio lighting',
+};
+function artFor(c) {
+  const st = state.settings.imageStyle;
+  if (ART_STYLES[st]) return ART_STYLES[st];
+  const tags = c.tags || [];
+  return tags.includes('Anime') ? ART_STYLES.anime : tags.includes('Realistic') ? ART_STYLES.photo : ART_STYLES.painted;
+}
+const lookOf = c => (c.look && c.look.trim()) || clip(plain(fill(c.personality, c)), 450);
+function portraitPrompt(c) {
+  if (c.art === 'scene') return `${artFor(c)}. ${lookOf(c)}. No text, no watermark.`;
+  const age = c.ageLabel || c.age || '';
+  return `${artFor(c)}. Head-and-shoulders portrait of an adult character${age ? ` (age ${age})` : ''}: ${lookOf(c)}. Facing the viewer with an expression that fits their personality, tasteful, fully clothed, softly blurred background. Single character, no text, no watermark.`;
+}
+function scenePrompt(sp, chat, m) {
+  const moment = m ? clip(plain(fill(textOf(m), sp)), 500) : '';
+  const place = chat.scenario ? clip(plain(fill(chat.scenario, sp)), 220) : '';
+  return `${artFor(sp)}. Picture of an adult character: ${lookOf(sp)}.${moment ? ' The moment: ' + moment : ''}${place ? ' Setting: ' + place : ''} Cinematic composition, no text, no watermark.`;
+}
+async function makeImage(prompt, aspect) {
+  const s = state.settings;
+  if (s.provider !== 'openrouter' || !s.apiKey) throw new Error('Pictures need an OpenRouter key. Add one in Settings.');
+  const model = (s.imageModel || DEFAULT_IMAGE_MODEL).trim();
+  const body = { model, prompt, aspect_ratio: aspect || '1:1' };
+  if (model === DEFAULT_IMAGE_MODEL) body.resolution = '1K';
+  const res = await fetch(OR_URL + '/images', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.apiKey.trim() }, body: JSON.stringify(body) });
+  if (!res.ok) {
+    let msg = `${res.status} ${res.statusText}`.trim();
+    try { const j = await res.json(); msg = (j.error && (j.error.message || j.error)) || msg; } catch {}
+    throw Object.assign(new Error(typeof msg === 'string' ? msg : JSON.stringify(msg)), { status: res.status });
+  }
+  const j = await res.json(), d = j.data && j.data[0];
+  if (!d || !(d.b64_json || d.url)) throw new Error('No picture came back. The picture model may have refused that one.');
+  if (d.url && !d.b64_json) return (await fetch(d.url)).blob();
+  return new Blob([Uint8Array.from(atob(d.b64_json), ch => ch.charCodeAt(0))], { type: d.media_type || 'image/png' });
+}
+async function shrinkImage(blob, max = 768) {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("Couldn't read that picture")); i.src = url; });
+    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    return cv.toDataURL('image/jpeg', 0.86);
+  } finally { URL.revokeObjectURL(url); }
+}
+const libImg = l => state.libImages[l.id] || (libHave(l) || {}).avatar || '';
+// x is a built-in library entry or one of your own characters
+async function makePortrait(x) {
+  const url = await imageToAvatar(await makeImage(portraitPrompt(x), '1:1'), 512);
+  if (state.chars.includes(x)) {
+    x.avatar = url;
+    saveChars();
+    if (x.libId) { state.libImages[x.libId] = url; DB.set('img:' + x.libId, url).catch(storageErr); }
+  } else {
+    state.libImages[x.id] = url;
+    DB.set('img:' + x.id, url).catch(storageErr);
+    const mine = libHave(x);
+    if (mine && !mine.avatar) { mine.avatar = url; saveChars(); }
+  }
+  return url;
+}
+async function portraitAll() {
+  if (state.portraitRun) return toast('Already painting. Hang on.');
+  if (!ready(showDiscover)) return;
+  const todo = [...LIBRARY.filter(l => !libImg(l)), ...state.chars.filter(c => !c.group && !c.libId && !c.avatar)];
+  if (!todo.length) return toast('Everyone already has a picture');
+  const cost = state.settings.imageModel === DEFAULT_IMAGE_MODEL ? ` About $${Math.max(0.01, todo.length * 0.009).toFixed(2)} on OpenRouter.` : '';
+  if (!confirm(`Paint ${todo.length} portraits?${cost} It takes a few minutes. Keep Velvet open.`)) return;
+  state.portraitRun = true;
+  let done = 0, failed = null;
+  const queue = [...todo];
+  const worker = async () => {
+    while (queue.length && !failed) {
+      const x = queue.shift();
+      try { await makePortrait(x); done++; toast(`Painting portraits… ${done}/${todo.length}`, false, 0); }
+      catch (e) { if ([401, 402, 429].includes(e.status) || e instanceof TypeError) failed = e; else console.warn(x.name, e); }
+      if (state.view === 'discover') refreshDiscover();
+    }
+  };
+  toast(`Painting portraits… 0/${todo.length}`, false, 0);
+  await Promise.all([worker(), worker(), worker()]); // three at a time
+  state.portraitRun = false;
+  if (failed) toast(`Stopped after ${done}: ${niceError(failed)}`, true);
+  else toast(`${done} portrait${done === 1 ? '' : 's'} done` + (done < todo.length ? ` (${todo.length - done} were refused; try those again)` : ''));
+  if (state.view === 'discover') showDiscover(); else if (state.view === 'home') showHome();
+}
+async function scenePicture() {
+  if (state.busy) return;
+  const chat = curChat(), g = curChar();
+  if (!ready(() => showChat(chat.id))) return;
+  const lastBot = [...chat.messages].reverse().find(m => m.role === 'assistant' && !m.image && textOf(m));
+  const sp = g.group ? (lastBot && lastBot.speaker && charById(lastBot.speaker)) || membersOf(g)[0] : g;
+  if (!sp) return;
+  const m = { id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now(), image: 'pending' };
+  if (g.group) m.speaker = sp.id;
+  chat.messages.push(m);
+  state.busy = true;
+  renderMessages(); setBusyUI(true, sp); scrollBottom();
+  try {
+    m.image = await shrinkImage(await makeImage(scenePrompt(sp, chat, lastBot), '3:4'), 768);
+    m.swipes = ['*sends a picture*'];
+  } catch (e) {
+    chat.messages.splice(chat.messages.indexOf(m), 1);
+    toast(niceError(e), true);
+  } finally {
+    state.busy = false;
+    saveChat(chat.id);
+    if (state.view === 'chat' && state.current === chat.id) { renderMessages(); setBusyUI(false); scrollBottom(); }
+  }
+}
+const dataUrlBlob = u => fetch(u).then(r => r.blob());
+
 /* ---------- characters & chats ---------- */
 function normalizeChar(c) {
   c.tags = Array.isArray(c.tags) ? c.tags : [];
@@ -492,7 +691,7 @@ function normalizeChar(c) {
       : [{ title: 'Main', scenario: c.scenario || '', greeting: '' }];
   }
   delete c.greeting; delete c.altGreetings; delete c.scenario;
-  for (const k of ['name', 'tagline', 'personality', 'style', 'examples', 'emoji', 'avatar', 'model', 'bio']) c[k] = c[k] == null ? '' : String(c[k]);
+  for (const k of ['name', 'tagline', 'personality', 'style', 'examples', 'emoji', 'avatar', 'model', 'bio', 'look']) c[k] = c[k] == null ? '' : String(c[k]);
   c.voice = c.voice && typeof c.voice === 'object' ? c.voice : {};
   return c;
 }
@@ -536,7 +735,7 @@ function deleteChat(id) {
 function adopt(lib) {
   let c = libHave(lib);
   if (!c) {
-    c = normalizeChar({ ...clone(lib), id: uid(), libId: lib.id, created: Date.now() });
+    c = normalizeChar({ ...clone(lib), id: uid(), libId: lib.id, created: Date.now(), avatar: state.libImages[lib.id] || '' });
     delete c.age;
     c.ageLabel = lib.age || '';
     state.chars.unshift(c);
@@ -551,10 +750,11 @@ function openChar(c) {
 
 /* ---------- prompt building ---------- */
 function writingNote(c, chat, upto) {
-  const bits = [`stay in character as ${c.name}`];
+  const g = groupOf(chat);
+  const bits = [g ? `reply only as ${c.name}, staying in character` : `stay in character as ${c.name}`];
   if (LENGTHS[chat.length]) bits.push(LENGTHS[chat.length]);
   if (chat.note) bits.push('direction: ' + fill(chat.note, c).replace(/[.\s]+$/, ''));
-  const opens = chat.messages.slice(0, upto).filter(m => m.role === 'assistant' && !m.greeting).slice(-3)
+  const opens = chat.messages.slice(0, upto).filter(m => m.role === 'assistant' && !m.greeting && (!g || m.speaker === c.id)).slice(-3)
     .map(m => plain(textOf(m)).split(' ').slice(0, 5).join(' ').slice(0, 40)).filter(Boolean);
   if (opens.length) bits.push(`start differently than your recent replies (${opens.map(o => `"${o}…"`).join(', ')}) and don't reuse their gestures or phrasing`);
   return `(Note for ${c.name}'s next reply, not part of the story: ${bits.join('; ')}.)`;
@@ -573,17 +773,26 @@ function buildPrompt(c, chat, upto, opts = {}) {
   if (chat.summary) parts.push(`[Story so far]\n${F(chat.summary)}`);
   if (chat.memory) parts.push(`[Important memories]\n${F(chat.memory)}`);
   if (c.examples) parts.push(`[Example dialogue, showing ${c.name}'s voice only, not events that happened]\n${F(c.examples)}`);
+  const g = groupOf(chat);
+  if (g) {
+    const others = membersOf(g).filter(o => o.id !== c.id);
+    parts.splice(1, 0, `[Group scene]\nThis is a group roleplay with ${user}${others.length ? ' and ' + others.map(o => o.name).join(', ') : ''}. You write only as ${c.name}. The others are played separately: never write their dialogue, actions or thoughts. Talk to and react to them as well as ${user}, with ${c.name}'s own opinions about each of them.`);
+    if (others.length) parts.push('[Others in the scene]\n' + others.map(o => `${o.name}: ${o.tagline}. ${clip(fill(o.personality, o).replace(/\s+/g, ' '), 420)}`).join('\n'));
+  }
   const system = parts.filter(Boolean).join('\n\n');
   const budget = Math.max(1500, (+s.contextTokens || 8000) - (+s.maxTokens || 400));
   let used = est(system) + 150, cut = 0;
   const hist = [];
   for (let k = upto - 1; k >= 0; k--) {
-    const m = chat.messages[k], t = F(textOf(m));
+    const m = chat.messages[k], sp = speakerOf(m, c);
+    let t = fill(textOf(m), sp).trim();
     if (!t) continue;
+    let role = m.role === 'user' ? 'user' : 'assistant';
+    // in a group, everyone except the current speaker reaches the model as a named line
+    if (g && (m.role === 'user' || sp.id !== c.id)) { role = 'user'; t = `${m.role === 'user' ? user : sp.name}: ${t}`; }
     const cost = est(t) + 4;
     if (hist.length && used + cost > budget) { cut = k + 1; break; }
     used += cost;
-    const role = m.role === 'user' ? 'user' : 'assistant';
     if (hist.length && hist[0].role === role) hist[0].content = t + '\n\n' + hist[0].content;
     else hist.unshift({ role, content: t });
   }
@@ -647,11 +856,11 @@ async function callModel(messages, onDelta, signal, opts = {}) {
   }
 }
 
-function cleanReply(t, c) {
-  t = t.trim().replace(new RegExp('^' + escRe(c.name) + '\\s*:\\s*', 'i'), '');
-  // cut the reply off if the model starts writing the user's lines, or echoes the writing note
-  const u = state.settings.userName || 'You';
-  const cut = t.search(new RegExp('\\n\\s*(' + escRe(u) + '|\\{\\{user\\}\\}|User)\\s*:|\\(Note for ', 'i'));
+function cleanReply(t, c, others = []) {
+  t = t.trim().replace(new RegExp('^\\**' + escRe(c.name) + '\\**\\s*:\\s*', 'i'), '');
+  // cut the reply off if the model starts writing someone else's lines, or echoes the writing note
+  const who = [escRe(state.settings.userName || 'You'), '\\{\\{user\\}\\}', 'User', ...others.map(escRe)].join('|');
+  const cut = t.search(new RegExp('\\n\\s*\\**(' + who + ')\\**\\s*:|\\(Note for ', 'i'));
   return (cut > 0 ? t.slice(0, cut) : t).trim();
 }
 const joinCont = (a, b) => (!b ? a : /[.!?…"*)\]]\s*$/.test(a) ? a.trimEnd() + '\n\n' + b.trimStart() : a.trimEnd() + ' ' + b.trimStart());
@@ -664,11 +873,12 @@ const TYPING = '<span class="typing"><i></i><i></i><i></i></span>';
 async function generate(c, chat, i, mode = 'reply') {
   const m = chat.messages[i];
   const baseText = mode === 'continue' ? textOf(m) : '';
+  const g = groupOf(chat), others = g ? membersOf(g).filter(o => o.id !== c.id).map(o => o.name) : [];
   state.busy = true;
   state.abort = new AbortController();
   state.lastError = null;
   state.suggestions = null;
-  renderMessages(); renderExtras(); scrollBottom(); setBusyUI(true);
+  renderMessages(); renderExtras(); scrollBottom(); setBusyUI(true, c);
   let text = '', queued = false, prompt;
   const paint = () => {
     queued = false;
@@ -687,13 +897,13 @@ async function generate(c, chat, i, mode = 'reply') {
       m.swipes[m.sw] = mode === 'continue' ? joinCont(baseText, text) : text;
       if (!queued) { queued = true; requestAnimationFrame(paint); }
     }, state.abort.signal, { model: modelFor(c), max_tokens: chat.length === 'long' ? Math.max(+state.settings.maxTokens, 1000) : undefined });
-    text = cleanReply(text, c);
+    text = cleanReply(text, c, others);
     if (!text) throw new Error('The model sent an empty reply. Try again, or pick another model.');
     m.swipes[m.sw] = mode === 'continue' ? joinCont(baseText, text) : text;
     if (state.settings.ttsAuto && state.current === chat.id) speakText(text, c);
     autoSummarize(c, chat, prompt.cut);
   } catch (e) {
-    text = cleanReply(text, c);
+    text = cleanReply(text, c, others);
     if (mode === 'continue') m.swipes[m.sw] = joinCont(baseText, text);
     else if (text) m.swipes[m.sw] = text; // keep whatever arrived
     else if (m.swipes.length > 1) { m.swipes.splice(m.sw, 1); m.sw = m.swipes.length - 1; }
@@ -724,10 +934,11 @@ async function autoSummarize(c, chat, cut) {
   if (upto - from < 8) return;
   state.summarizing.add(chat.id);
   const user = state.settings.userName || 'You';
-  const lines = chat.messages.slice(from, upto).map(m => `${m.role === 'user' ? user : c.name}: ${plain(fill(textOf(m), c))}`).join('\n');
+  const g = groupOf(chat), cast = g ? memberNames(g, true) : c.name;
+  const lines = chat.messages.slice(from, upto).map(m => `${m.role === 'user' ? user : speakerOf(m, c).name}: ${plain(fill(textOf(m), speakerOf(m, c)))}`).join('\n');
   const msgs = [
     { role: 'system', content: 'You keep the running memory for a long roleplay story between adults. Write compact bullet points in past tense: key events, how the relationship has changed, promises, names, places, details about each character, preferences that came up and anything intimate that happened, so the story stays consistent. No commentary.' },
-    { role: 'user', content: (chat.summary ? `Current memory:\n${chat.summary}\n\n` : '') + `New part of the story (${c.name} and ${user}):\n${lines}\n\nRewrite the full memory including the new part. Stay under 250 words.` },
+    { role: 'user', content: (chat.summary ? `Current memory:\n${chat.summary}\n\n` : '') + `New part of the story (${cast} and ${user}):\n${lines}\n\nRewrite the full memory including the new part. Stay under 250 words.` },
   ];
   try {
     let out = '';
@@ -737,37 +948,49 @@ async function autoSummarize(c, chat, cut) {
   } catch {} finally { state.summarizing.delete(chat.id); }
 }
 
-async function send() {
-  if (state.busy) { if (state.abort) state.abort.abort(); return; }
+// forceSpeaker: in a group, the member whose name button was tapped
+async function send(forceSpeaker) {
+  if (state.busy) { state.stopRequested = true; if (state.abort) state.abort.abort(); return; }
   const chat = curChat(), c = curChar(), input = $('#input');
   const text = input.value.trim();
   const lastMsg = last(chat.messages);
-  if (!text && (!lastMsg || lastMsg.role !== 'user')) return;
+  if (!text && !forceSpeaker && (!lastMsg || lastMsg.role !== 'user')) return;
   if (!ready(() => showChat(chat.id))) return;
   primeSpeech();
   if (text) {
     chat.messages.push({ id: uid(), role: 'user', content: text, ts: Date.now() });
     input.value = ''; state.drafts[chat.id] = ''; autoGrow(input);
   }
-  chat.messages.push({ id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now() });
-  await generate(c, chat, chat.messages.length - 1);
+  state.stopRequested = false;
+  if (!c.group) {
+    chat.messages.push({ id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now() });
+    return generate(c, chat, chat.messages.length - 1);
+  }
+  const said = text || (lastMsg && lastMsg.role === 'user' ? lastMsg.content : '');
+  const responders = forceSpeaker ? [charById(forceSpeaker)].filter(Boolean) : pickResponders(c, chat, said);
+  for (const sp of responders) {
+    chat.messages.push({ id: uid(), role: 'assistant', speaker: sp.id, swipes: [''], sw: 0, ts: Date.now() });
+    const n = chat.messages.length;
+    await generate(sp, chat, n - 1);
+    if (state.stopRequested || state.current !== chat.id || chat.messages.length < n || state.lastError) break;
+  }
 }
 function regenerate() {
   const chat = curChat(), c = curChar(), i = chat.messages.length - 1, m = chat.messages[i];
-  if (state.busy || !m || m.role !== 'assistant' || m.greeting) return;
+  if (state.busy || !m || m.role !== 'assistant' || m.greeting || m.image) return;
   if (!ready(() => showChat(chat.id))) return;
   m.swipes.push(''); m.sw = m.swipes.length - 1;
-  generate(c, chat, i);
+  generate(speakerOf(m, c), chat, i);
 }
 function continueReply() {
   const chat = curChat(), c = curChar(), i = chat.messages.length - 1, m = chat.messages[i];
-  if (state.busy || !m || m.role !== 'assistant') return;
+  if (state.busy || !m || m.role !== 'assistant' || m.image) return;
   if (!ready(() => showChat(chat.id))) return;
-  generate(c, chat, i, 'continue');
+  generate(speakerOf(m, c), chat, i, 'continue');
 }
 function swipe(dir) {
   const chat = curChat(), m = last(chat.messages);
-  if (state.busy || !m || m.role !== 'assistant') return;
+  if (state.busy || !m || m.role !== 'assistant' || m.image) return;
   if (dir === 'prev') { if (m.sw > 0) m.sw--; else return; }
   else if (m.sw < m.swipes.length - 1) m.sw++;
   else if (!m.greeting) return regenerate();
@@ -776,9 +999,13 @@ function swipe(dir) {
 }
 async function suggestReplies() {
   if (state.busy) return;
-  const chat = curChat(), c = curChar();
+  const chat = curChat(), g = curChar();
   if (!ready(() => showChat(chat.id))) return;
   const user = state.settings.userName || 'You';
+  // in a group, suggestions are written from the point of view of whoever spoke last
+  const lastBot = [...chat.messages].reverse().find(m => m.role === 'assistant');
+  const c = g.group ? (lastBot && lastBot.speaker && charById(lastBot.speaker)) || membersOf(g)[0] : g;
+  if (!c) return;
   state.suggestions = 'loading'; renderExtras();
   try {
     const instr = `[Out of character: write 3 different replies ${user} might send next, in ${user}'s own voice (first person), each under 30 words. Make them clearly different from each other, for example one bold, one sweet and one playful. Use *asterisks* for actions. Put each on its own line, with no numbering, labels or commentary.]`;
@@ -905,8 +1132,9 @@ function showHome() {
   const chars = [...state.chars].sort((a, b) => (activity(b) || b.created || 0) - (activity(a) || a.created || 0));
   const rows = chars.map(c => {
     const ch = activeChat(c), lm = ch && last(ch.messages);
-    const preview = lm ? (lm.role === 'user' ? 'You: ' : '') + plain(fill(textOf(lm), c)) : (c.tagline || plain(c.personality));
-    return `<button class="row" data-id="${c.id}">${avatarHtml(c, 'av56')}<span class="row-main"><span class="row-top"><b>${esc(c.name)}</b><small>${ago(activity(c))}</small></span><span class="row-sub">${esc(clip(preview, 120))}</span></span></button>`;
+    const who = lm && (lm.role === 'user' ? 'You: ' : c.group ? callName(speakerOf(lm, c)) + ': ' : '');
+    const preview = lm ? who + plain(fill(textOf(lm), speakerOf(lm, c))) : (c.tagline || plain(c.personality));
+    return `<button class="row" data-id="${c.id}">${charAvatar(c, 'av56')}<span class="row-main"><span class="row-top"><b>${esc(c.name)}</b><small>${ago(activity(c))}</small></span><span class="row-sub">${esc(clip(preview, 120))}</span></span></button>`;
   }).join('');
   const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -926,6 +1154,7 @@ function showHome() {
   if ($('#btnInstallX')) $('#btnInstallX').onclick = () => { lsSet('installHintDone', '1'); $('#installCard').remove(); };
   $('.list').onclick = e => { const r = e.target.closest('.row'); if (r) openChar(charById(r.dataset.id)); };
   $('#btnNew').onclick = () => sheetMenu([
+    ['group', 'Start a group chat', () => showGroupEdit(null, showHome)],
     ['person', 'Create a character', () => showEdit(null, showHome)],
     ['import', 'Import character card (PNG or JSON)', () => pickFile('.png,.json,image/png,application/json', importFile)],
     ['compass', 'Browse characters', showDiscover],
@@ -935,9 +1164,15 @@ function showHome() {
 function showDiscover() {
   const cats = CATS.filter(t => t === 'All' || LIBRARY.some(l => l.tags.includes(t)));
   if (!cats.includes(state.filter)) state.filter = 'All';
+  const need = configured(), bare = LIBRARY.filter(l => !libImg(l)).length;
+  const banner = need
+    ? `<button class="card" id="btnSetup" style="margin-top:0"><b>Connect an AI model</b><span>${esc(need)}</span></button>`
+    : state.settings.provider === 'openrouter' && bare >= 5 && !state.portraitRun
+      ? `<button class="card" id="btnPaintAll" style="margin-top:0"><b>🎨 Give everyone a portrait</b><span>${bare} characters, painted in the cloud for about $${(bare * 0.009).toFixed(2)} total. Takes a few minutes.</span></button>` : '';
   mount(`
   <header class="bar"><h1 class="logo">Discover</h1><div class="bar-actions"><button class="icon-btn" id="btnSettings" aria-label="Settings">${ICON.gear}</button></div></header>
   <main class="scroll disc">
+    ${banner}
     <div class="searchbox"><input id="q" type="search" placeholder="Search ${LIBRARY.length} characters" value="${esc(state.query)}" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     <div class="chips" id="cats">${cats.map(t => `<button class="chip${t === state.filter ? ' on' : ''}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
     <div class="grid" id="grid"></div>
@@ -948,10 +1183,13 @@ function showDiscover() {
     const words = state.query.toLowerCase().split(/\s+/).filter(Boolean);
     const hits = LIBRARY.filter(l => (state.filter === 'All' || l.tags.includes(state.filter))
       && words.every(w => (l.name + ' ' + l.tagline + ' ' + l.tags.join(' ')).toLowerCase().includes(w)));
-    $('#grid').innerHTML = hits.map(l => `<button class="pcard" data-id="${esc(l.id)}"><span class="art" style="${gradCss(l)}"><i>${esc(l.emoji)}</i>${libHave(l) ? '<em class="badge">In your chats</em>' : ''}</span><span class="info"><b>${esc(l.name)}<small>${l.age ? ' · ' + esc(l.age) : ''}</small></b><span>${esc(l.tagline)}</span></span></button>`).join('')
+    $('#grid').innerHTML = hits.map(l => { const img = libImg(l); return `<button class="pcard" data-id="${esc(l.id)}"><span class="art" style="${gradCss(l)}">${img ? `<img src="${img}" alt="" loading="lazy">` : `<i>${esc(l.emoji)}</i>`}${libHave(l) ? '<em class="badge">In your chats</em>' : ''}</span><span class="info"><b>${esc(l.name)}<small>${l.age ? ' · ' + esc(l.age) : ''}</small></b><span>${esc(l.tagline)}</span></span></button>`; }).join('')
       || '<p class="empty" style="grid-column:1/-1">No one matches that.</p>';
   };
   draw();
+  state.discoverDraw = draw;
+  if ($('#btnSetup')) $('#btnSetup').onclick = () => showSettings(showDiscover);
+  if ($('#btnPaintAll')) $('#btnPaintAll').onclick = e => { e.currentTarget.remove(); portraitAll(); };
   $('#q').oninput = e => { state.query = e.target.value; draw(); };
   $('#cats').onclick = e => {
     const b = e.target.closest('[data-t]');
@@ -963,19 +1201,36 @@ function showDiscover() {
   $('#grid').onclick = e => { const b = e.target.closest('[data-id]'); if (b) showProfile(LIBRARY.find(l => l.id === b.dataset.id)); };
 }
 
+const refreshDiscover = () => { if (state.view === 'discover' && state.discoverDraw && $('#grid')) state.discoverDraw(); };
 const sceneButtons = (c, scenes) => scenes.map((s, k) => `<button class="scene" data-k="${k}"><span><b>${esc(s.title)}</b><small>${esc(clip(fill(s.scenario, c), 140))}</small></span><i>Start</i></button>`).join('');
 
 function showProfile(lib) {
   const mine = libHave(lib), has = mine && chatsOf(mine).length;
+  const pic = () => avatarHtml({ ...lib, avatar: libImg(lib) }, 'av96');
   const sh = openSheet(`<div class="sheet-body">
-    <div class="prof">${avatarHtml(lib, 'av96')}<h3>${esc(lib.name)}${lib.age ? `<small> · ${esc(lib.age)}</small>` : ''}</h3><p class="tagline">${esc(lib.tagline)}</p>
+    <div class="prof"><span id="profPic">${pic()}</span><button class="pic-btn" data-pic>${ICON.image.replace('<svg', '<svg width="16" height="16"')} <span>${libImg(lib) ? 'New picture' : 'Make a picture'}</span> <small>~1¢</small></button>
+      <h3>${esc(lib.name)}${lib.age ? `<small> · ${esc(lib.age)}</small>` : ''}</h3><p class="tagline">${esc(lib.tagline)}</p>
       <div class="tagrow">${lib.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div><p class="bio">${esc(fill(lib.bio, lib))}</p></div>
     ${has ? '<button class="btn primary" data-continue>Continue your chat</button>' : ''}
     <div class="section">${has ? 'Or start a new story' : 'Pick a story to start'}</div>
     ${sceneButtons(lib, lib.scenes)}
   </div>`);
   sh.classList.add('tall');
-  sh.onclick = e => {
+  sh.onclick = async e => {
+    const pb = e.target.closest('[data-pic]');
+    if (pb) {
+      if (!ready(showDiscover)) return;
+      pb.disabled = true; $('span', pb).textContent = 'Painting…';
+      try {
+        const target = libHave(lib) || lib;
+        if (target !== lib) target.avatar = ''; // a new picture replaces the old one
+        await makePortrait(target);
+        $('#profPic', sh).innerHTML = pic();
+        refreshDiscover();
+      } catch (err) { toast(niceError(err), true); }
+      pb.disabled = false; $('span', pb).textContent = libImg(lib) ? 'New picture' : 'Make a picture';
+      return;
+    }
     if (e.target.closest('[data-continue]')) { closeSheet(true); openChar(mine); return; }
     const b = e.target.closest('[data-k]');
     if (!b) return;
@@ -1022,12 +1277,12 @@ function showChat(id) {
   mount(`
   <div class="bg-wrap"><div class="chat-bg" ${c.avatar ? `style="background-image:url('${c.avatar}')"` : `style="${gradCss(c)}"`}></div></div>
   <header class="bar"><button class="icon-btn" id="btnBack" aria-label="Back">${ICON.back}</button>
-    <button class="chat-title" id="btnInfo">${avatarHtml(c, 'av36')}<span><b>${esc(c.name)}</b><small id="status">${esc(chat.title !== 'Main' && chat.title !== 'Chat' ? chat.title : c.tagline)}</small></span></button>
+    <button class="chat-title" id="btnInfo">${charAvatar(c, 'av36')}<span><b>${esc(c.name)}</b><small id="status">${esc(subtitle(chat, c))}</small></span></button>
     <button class="icon-btn" id="btnMenu" aria-label="Chat options">${ICON.dots}</button></header>
   <main class="scroll msgs" id="msgs"></main>
   <footer class="composer"><div id="extras"></div><div class="input-row">
     <button class="tool" id="btnIdea" aria-label="Suggest replies">${ICON.idea}</button>
-    <textarea id="input" rows="1" placeholder="Message ${esc(c.name.split(' ')[0])}…" enterkeyhint="send"></textarea>
+    <textarea id="input" rows="1" placeholder="${c.group ? 'Message the group…' : 'Message ' + esc(callName(c)) + '…'}" enterkeyhint="send"></textarea>
     <button class="send" id="btnSend" aria-label="Send">${ICON.send}</button></div></footer>`, 'chat');
   const input = $('#input'), box = $('#msgs');
   input.value = state.drafts[id] || '';
@@ -1036,7 +1291,7 @@ function showChat(id) {
   input.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !isTouch) { e.preventDefault(); send(); } };
   input.onfocus = () => setTimeout(scrollBottom, 350);
   $('#btnSend').onmousedown = e => e.preventDefault(); // keep the keyboard up
-  $('#btnSend').onclick = send;
+  $('#btnSend').onclick = () => send();
   $('#btnIdea').onmousedown = e => e.preventDefault();
   $('#btnIdea').onclick = suggestReplies;
   $('#btnBack').onclick = showHome;
@@ -1044,6 +1299,8 @@ function showChat(id) {
   $('#btnMenu').onclick = chatMenu;
   $('#extras').onclick = e => {
     if (e.target.closest('#btnSteerPill')) return steerSheet();
+    const spk = e.target.closest('[data-sp]');
+    if (spk) { if (!state.busy) send(spk.dataset.sp); return; }
     const s = e.target.closest('[data-s]');
     if (!s) return;
     if (s.dataset.s !== 'x') { input.value = state.suggestions[+s.dataset.s]; state.drafts[id] = input.value; autoGrow(input); }
@@ -1074,39 +1331,46 @@ function showChat(id) {
 }
 
 function msgHtml(m, i, isLast, c) {
-  const t = fill(textOf(m), c);
+  const sp = speakerOf(m, c), t = fill(textOf(m), sp);
   if (m.role === 'user') return `<div class="msg user" data-i="${i}"><div class="bubble">${fmt(t)}</div></div>`;
+  if (m.image) return `<div class="msg bot" data-i="${i}">${avatarHtml(sp, 'av28')}<div class="col"><div class="name">${esc(sp.name)}</div><div class="bubble picb">${m.image === 'pending'
+    ? `<span class="painting">${TYPING} painting a picture…</span>` : `<img class="pic" src="${m.image}" alt="Picture from ${esc(sp.name)}">`}</div></div></div>`;
   const n = m.swipes.length;
   let ctrls = '';
   if (isLast && !state.busy) {
     ctrls = `<div class="swipes">${n > 1 ? `<button data-act="prev" aria-label="Previous reply" ${m.sw === 0 ? 'disabled' : ''}>‹</button><span>${m.sw + 1}/${n}</span>` : ''}${m.sw < n - 1 ? '<button data-act="next" aria-label="Next reply">›</button>' : !m.greeting ? `<button data-act="next" aria-label="New reply">${ICON.redo}</button>` : ''}</div>`;
   }
-  return `<div class="msg bot" data-i="${i}">${avatarHtml(c, 'av28')}<div class="col"><div class="name">${esc(c.name)}</div><div class="bubble">${t.trim() ? fmt(t) : TYPING}</div>${ctrls}</div></div>`;
+  return `<div class="msg bot" data-i="${i}">${avatarHtml(sp, 'av28')}<div class="col"><div class="name">${esc(sp.name)}</div><div class="bubble">${t.trim() ? fmt(t) : TYPING}</div>${ctrls}</div></div>`;
 }
 function renderMessages() {
   const box = $('#msgs');
   if (!box) return;
   const chat = curChat(), c = curChar(), n = chat.messages.length;
   let html = chat.scenario ? `<div class="scene-note">${esc(fill(chat.scenario, c))}</div>` : '';
-  html += chat.messages.map((m, i) => msgHtml(m, i, i === n - 1, c)).join('') || `<p class="empty">Say hi to ${esc(c.name)}.</p>`;
+  html += chat.messages.map((m, i) => msgHtml(m, i, i === n - 1, c)).join('')
+    || `<p class="empty">${c.group ? 'Say something to the group, or tap a name below to let someone start.' : 'Say hi to ' + esc(c.name) + '.'}</p>`;
   if (state.lastError && n && last(chat.messages).role === 'user' && !state.busy)
     html += `<div class="retry"><span>${esc(clip(state.lastError, 160))}</span><button data-act="retry">Retry</button></div>`;
+  const stick = nearBottom();
   box.innerHTML = html;
+  const pic = box.querySelector('.msg:last-child img.pic'); // pictures change height once they load
+  if (pic && stick && !pic.complete) pic.onload = scrollBottom;
 }
 function renderExtras() {
-  const box = $('#extras'), chat = curChat();
+  const box = $('#extras'), chat = curChat(), c = curChar();
   if (!box || !chat) return;
   let h = '';
   const steer = [chat.length !== 'auto' ? LEN_LABEL[chat.length] + ' replies' : '', chat.note].filter(Boolean).join(' · ');
   if (steer) h += `<button class="steer-pill" id="btnSteerPill">🎬 ${esc(steer)}</button>`;
   if (state.suggestions === 'loading') h += `<div class="suggest"><span class="sugg loading">${TYPING}</span></div>`;
   else if (Array.isArray(state.suggestions)) h += `<div class="suggest">${state.suggestions.map((s, k) => `<button class="sugg" data-s="${k}">${fmt(s)}</button>`).join('')}<button class="sugg x" data-s="x" aria-label="Close suggestions">✕</button></div>`;
+  if (c && c.group) h += `<div class="speakers"><small>Next:</small>${membersOf(c).map(m => `<button class="spk" data-sp="${m.id}">${avatarHtml(m, 'av24')}<span>${esc(callName(m))}</span></button>`).join('')}</div>`;
   box.innerHTML = h;
 }
-function setBusyUI(b) {
+function setBusyUI(b, sp) {
   const btn = $('#btnSend'), st = $('#status'), chat = curChat(), c = curChar();
   if (btn) { btn.innerHTML = b ? ICON.stop : ICON.send; btn.classList.toggle('stop', b); btn.setAttribute('aria-label', b ? 'Stop' : 'Send'); }
-  if (st && chat && c) st.textContent = b ? 'typing…' : (chat.title !== 'Main' && chat.title !== 'Chat' ? chat.title : c.tagline);
+  if (st && chat && c) st.textContent = b ? (c.group && sp ? callName(sp) + ' is typing…' : 'typing…') : subtitle(chat, c);
 }
 function autoGrow(el) {
   el.style.height = '44px';
@@ -1116,12 +1380,24 @@ function autoGrow(el) {
 function messageActions(i) {
   const chat = curChat(), c = curChar(), m = chat.messages[i];
   if (!m) return;
-  const isLast = i === chat.messages.length - 1;
+  const isLast = i === chat.messages.length - 1, sp = speakerOf(m, c);
+  if (m.image) {
+    if (m.image === 'pending') return;
+    return sheetMenu([
+      ['share', 'Save picture', () => dataUrlBlob(m.image).then(b => shareFile(b, `${sp.name.replace(/[^\w-]+/g, '_')}.jpg`, 'image/jpeg'))],
+      ['person', `Make it ${callName(sp)}'s profile picture`, async () => {
+        sp.avatar = await imageToAvatar(await dataUrlBlob(m.image), 512);
+        if (sp.libId) { state.libImages[sp.libId] = sp.avatar; DB.set('img:' + sp.libId, sp.avatar).catch(storageErr); }
+        saveChars(); showChat(chat.id); toast('Profile picture updated');
+      }],
+      ['trash', 'Delete picture', () => { chat.messages.splice(i, 1); saveChat(chat.id); renderMessages(); }, 'danger'],
+    ]);
+  }
   const items = [
-    ['copy', 'Copy', () => copyText(fill(textOf(m), c))],
+    ['copy', 'Copy', () => copyText(fill(textOf(m), sp))],
     ['edit', 'Edit', () => textSheet({ title: 'Edit message', value: textOf(m), save: v => { if (!v.trim()) return; setText(m, v.trim()); saveChat(chat.id); renderMessages(); } })],
   ];
-  if (m.role === 'assistant') items.push(['speaker', 'Read aloud', () => speakText(textOf(m), c)]);
+  if (m.role === 'assistant') items.push(['speaker', 'Read aloud', () => speakText(textOf(m), sp)]);
   if (m.role === 'assistant' && isLast) items.push(['more', 'Continue this reply', continueReply]);
   if (m.role === 'assistant' && isLast && !m.greeting) items.push(['redo', 'New reply', regenerate]);
   if (!isLast) items.push(['rewind', 'Rewind to here', () => {
@@ -1136,11 +1412,12 @@ function messageActions(i) {
 function chatMenu() {
   const chat = curChat(), c = curChar(), n = chatsOf(c).length;
   sheetMenu([
+    ['camera', 'Ask for a picture', scenePicture],
     ['steer', 'Steer the story', steerSheet],
     ['memory', 'Memory & scenario', memorySheet],
-    ['list', `All chats with ${c.name.split(' ')[0]} (${n})`, () => chatList(c)],
+    ['list', `All chats with ${c.group ? 'this group' : callName(c)} (${n})`, () => chatList(c)],
     ['fresh', 'New chat', () => scenePicker(c)],
-    ['person', 'Edit character', () => showEdit(c.id, () => showChat(chat.id))],
+    [c.group ? 'group' : 'person', c.group ? 'Edit group' : 'Edit character', () => showEdit(c.id, () => showChat(chat.id))],
     ['trash', 'Delete this chat', () => {
       if (!confirm('Delete this chat? This can\'t be undone.')) return;
       deleteChat(chat.id);
@@ -1200,16 +1477,19 @@ function voiceOptions(sel, cur) {
 }
 function showEdit(id, back) {
   const orig = id && charById(id);
+  if (orig && orig.group) return showGroupEdit(id, back);
   const d = orig ? clone(orig) : normalizeChar({ name: '', emoji: '', colors: hues({ name: String(Math.random()) }) });
   mount(`
   <header class="bar"><button class="text-btn" id="btnCancel">Cancel</button><h2>${orig ? 'Edit character' : 'New character'}</h2><button class="text-btn strong" id="btnSave">Save</button></header>
   <main class="scroll form">
-    <div class="avatar-pick"><button class="avatar-btn" id="btnAvatar"><span id="avPrev">${avatarHtml(d, 'av96')}</span><span>${d.avatar ? 'Change photo' : 'Add photo'}</span></button>${d.avatar ? '<button class="text-btn" id="btnNoPhoto">Remove photo</button>' : ''}</div>
+    <div class="avatar-pick"><button class="avatar-btn" id="btnAvatar"><span id="avPrev">${avatarHtml(d, 'av96')}</span><span>${d.avatar ? 'Change photo' : 'Add photo'}</span></button>
+      <button class="pic-btn" id="btnAiPic" type="button">${ICON.image.replace('<svg', '<svg width="16" height="16"')} <span>Create with AI</span> <small>~1¢</small></button>${d.avatar ? '<button class="text-btn" id="btnNoPhoto">Remove photo</button>' : ''}</div>
     <div class="inline2"><label class="field grow"><span>Name</span><input id="f_name" maxlength="60" placeholder="e.g. Mara" value="${esc(d.name)}"></label><label class="field emo-f"><span>Emoji</span><input id="f_emoji" maxlength="8" placeholder="✨" value="${esc(d.emoji)}"></label></div>
     <label class="field"><span>Tagline <em>shown in your list</em></span><input id="f_tagline" maxlength="90" placeholder="e.g. Your flirty bartender neighbor" value="${esc(d.tagline)}"></label>
     <label class="field"><span>Tags <em>comma separated</em></span><input id="f_tags" placeholder="Female, Fantasy, Dominant" value="${esc(d.tags.join(', '))}"></label>
     <label class="field"><span>Personality, looks &amp; background</span><textarea id="f_personality" rows="8" placeholder="Who they are, their age (18+), how they look, what they want, their flaws, and how they act when things get intimate.">${esc(d.personality)}</textarea></label>
     <label class="field"><span>How they talk <em>voice, habits, quirks</em></span><textarea id="f_style" rows="3" placeholder="e.g. Short sentences, dry sarcasm, swears when nervous, calls {{user}} 'trouble'.">${esc(d.style)}</textarea></label>
+    <label class="field"><span>Appearance <em>used for AI pictures</em></span><textarea id="f_look" rows="2" placeholder="e.g. tall woman, 30, wavy red hair, green eyes, freckles, leather jacket">${esc(d.look)}</textarea></label>
     <div class="section">Stories <em>each one starts a chat differently</em></div>
     <div id="scenes"></div>
     <button class="btn" id="btnAddScene" type="button">+ Add another story</button>
@@ -1247,12 +1527,25 @@ function showEdit(id, back) {
     catch (e) { toast(e.message, true); }
   });
   if ($('#btnNoPhoto')) $('#btnNoPhoto').onclick = e => { d.avatar = ''; $('#avPrev').innerHTML = avatarHtml(d, 'av96'); e.target.remove(); };
+  $('#btnAiPic').onclick = async e => {
+    const b = e.currentTarget, v = k => $('#f_' + k).value.trim();
+    if (!v('name')) return toast('Give them a name first', true);
+    if (!v('look') && !v('personality')) return toast('Describe their appearance first', true);
+    if (!ready(() => showEdit(id, back))) return;
+    b.disabled = true; $('span', b).textContent = 'Painting…';
+    try {
+      const temp = { ...d, name: v('name'), look: v('look'), personality: v('personality'), tags: v('tags').split(',').map(t => t.trim()) };
+      d.avatar = await imageToAvatar(await makeImage(portraitPrompt(temp), '1:1'), 512);
+      $('#avPrev').innerHTML = avatarHtml(d, 'av96');
+    } catch (err) { toast(niceError(err), true); }
+    b.disabled = false; $('span', b).textContent = 'Create with AI';
+  };
   $('#btnSave').onclick = () => {
     const name = $('#f_name').value.trim();
     if (!name) return toast('Give them a name first', true);
     const v = k => $('#f_' + k).value.trim();
     readScenes(); readVoice();
-    Object.assign(d, { name, emoji: v('emoji'), tagline: v('tagline'), personality: v('personality'), style: v('style'), examples: v('examples'), model: v('model'),
+    Object.assign(d, { name, emoji: v('emoji'), tagline: v('tagline'), personality: v('personality'), style: v('style'), look: v('look'), examples: v('examples'), model: v('model'),
       tags: v('tags').split(',').map(t => t.trim()).filter(Boolean) });
     if (orig) {
       state.chars[state.chars.findIndex(x => x.id === id)] = d;
@@ -1279,11 +1572,94 @@ function showEdit(id, back) {
     $('#btnDelete').onclick = () => {
       if (!confirm(`Delete ${orig.name} and every chat with them? This can't be undone.`)) return;
       for (const ch of chatsOf(orig)) { delete state.chats[ch.id]; saveChat(ch.id); }
+      for (const g of state.chars) if (g.group) g.members = g.members.filter(m => m !== id);
       state.chars = state.chars.filter(x => x.id !== id);
       saveChars();
       showHome();
     };
   }
+}
+
+const refChar = r => (r.startsWith('lib:') ? LIBRARY.find(l => l.id === r.slice(4)) : charById(r));
+const GROUP_MODES = {
+  natural: ['Natural', 'Whoever you were talking to answers, and sometimes someone else jumps in. Say a name to choose who replies.'],
+  one: ['Take turns', 'One character answers each message, rotating through the group. Say a name to choose who replies.'],
+  all: ['Everyone', 'Every character replies to each of your messages, one after another. Costs more per message.'],
+};
+function showGroupEdit(id, back) {
+  const orig = id && charById(id);
+  const d = orig
+    ? { members: orig.members.filter(r => charById(r)), scenario: (orig.scenes[0] || {}).scenario || '', replyMode: orig.replyMode || 'natural' }
+    : { members: [], scenario: '', replyMode: 'natural' };
+  mount(`
+  <header class="bar"><button class="text-btn" id="btnCancel">Cancel</button><h2>${orig ? 'Edit group' : 'New group chat'}</h2><button class="text-btn strong" id="btnSave">Save</button></header>
+  <main class="scroll form">
+    <div class="avatar-pick" id="gPrev"></div>
+    <label class="field"><span>Group name <em>optional</em></span><input id="g_name" maxlength="60" placeholder="Uses everyone's names if empty" value="${esc(orig ? orig.name : '')}"></label>
+    <div class="section">Who's in it <em>2 to 6 characters</em></div>
+    <div id="gMembers"></div>
+    <button class="btn" id="btnAddMember" type="button">+ Add someone</button>
+    <label class="field" style="margin-top:12px"><span>Scenario</span><textarea id="g_scenario" rows="4" placeholder="Where are you all, and what's going on? e.g. A snowed-in ski lodge. Everyone's had a few drinks, and the power just went out.">${esc(d.scenario)}</textarea></label>
+    <div class="field"><span>Who replies</span><div class="seg" id="gMode">${Object.entries(GROUP_MODES).map(([k, v]) => `<button type="button" data-mode="${k}" class="${d.replyMode === k ? 'on' : ''}">${v[0]}</button>`).join('')}</div></div>
+    <p class="hint" id="gModeHint" style="margin-top:-6px"></p>
+    <p class="hint">Tap a name above the message box any time to make that character talk next.</p>
+    ${orig ? '<button class="btn danger" id="btnDelete">Delete group</button>' : ''}
+  </main>`, 'edit');
+  const draw = () => {
+    const ms = d.members.map(refChar);
+    $('#gPrev').innerHTML = groupAvatar(ms, 'av96');
+    $('#gMembers').innerHTML = ms.map((m, k) => `<div class="pick">${avatarHtml(m, 'av36')}<span><b>${esc(m.name)}</b><small>${esc(m.tagline)}</small></span><button class="icon-btn" type="button" data-rm="${k}" aria-label="Remove ${esc(m.name)}">×</button></div>`).join('')
+      || '<p class="hint" style="margin:0 4px 12px">Nobody yet. Add at least two characters.</p>';
+    $('#btnAddMember').hidden = d.members.length >= 6;
+    $('#gModeHint').textContent = GROUP_MODES[d.replyMode][1];
+  };
+  draw();
+  $('#gMembers').onclick = e => { const b = e.target.closest('[data-rm]'); if (b) { d.members.splice(+b.dataset.rm, 1); draw(); } };
+  $('#gMode').onclick = e => {
+    const b = e.target.closest('[data-mode]');
+    if (!b) return;
+    d.replyMode = b.dataset.mode;
+    $$('#gMode button').forEach(x => x.classList.toggle('on', x === b));
+    draw();
+  };
+  $('#btnAddMember').onclick = () => {
+    const taken = new Set(d.members);
+    const mine = state.chars.filter(c => !c.group && !taken.has(c.id));
+    const lib = LIBRARY.filter(l => !libHave(l) && !taken.has('lib:' + l.id));
+    const row = (ref, c) => `<button class="pick" data-ref="${esc(ref)}">${avatarHtml(c, 'av36')}<span><b>${esc(c.name)}</b><small>${esc(c.tagline)}</small></span></button>`;
+    const sh = openSheet(`<div class="sheet-title">Add to the group</div><div class="sheet-body">
+      ${mine.length ? '<div class="section" style="margin-top:4px">Your characters</div>' + mine.map(c => row(c.id, c)).join('') : ''}
+      ${lib.length ? '<div class="section">From Discover</div>' + lib.map(l => row('lib:' + l.id, l)).join('') : ''}</div>`);
+    sh.classList.add('tall');
+    sh.onclick = e => { const b = e.target.closest('[data-ref]'); if (!b) return; d.members.push(b.dataset.ref); closeSheet(); draw(); };
+  };
+  $('#btnCancel').onclick = back;
+  $('#btnSave').onclick = () => {
+    if (d.members.length < 2) return toast('Add at least two characters', true);
+    const members = d.members.map(r => (r.startsWith('lib:') ? adopt(refChar(r)).id : r));
+    const names = members.map(m => callName(charById(m)));
+    const autoName = names.length > 1 ? names.slice(0, -1).join(', ') + ' & ' + last(names) : names[0];
+    const name = $('#g_name').value.trim() || autoName;
+    const scenario = $('#g_scenario').value.trim();
+    if (orig) {
+      Object.assign(orig, { name, members, replyMode: d.replyMode, tagline: autoName, scenes: [{ title: 'Group chat', scenario, greeting: '' }] });
+      for (const ch of chatsOf(orig)) if (!ch.messages.length) { ch.scenario = scenario; saveChat(ch.id); }
+      saveChars();
+      back();
+    } else {
+      const g = normalizeChar({ id: uid(), group: true, name, members, replyMode: d.replyMode, tagline: autoName, emoji: '👥', scenes: [{ title: 'Group chat', scenario, greeting: '' }], created: Date.now() });
+      state.chars.unshift(g);
+      saveChars();
+      showChat(newChat(g, g.scenes[0]).id);
+    }
+  };
+  if (orig) $('#btnDelete').onclick = () => {
+    if (!confirm(`Delete the group "${orig.name}" and its chats? The characters themselves stay.`)) return;
+    for (const ch of chatsOf(orig)) { delete state.chats[ch.id]; saveChat(ch.id); }
+    state.chars = state.chars.filter(x => x.id !== id);
+    saveChars();
+    showHome();
+  };
 }
 
 function showSettings(back) {
@@ -1327,6 +1703,12 @@ function showSettings(back) {
     ${toggle('ttsActions', 'Also read *actions*')}
     <p class="hint" style="margin-top:2px">Uses your iPhone's voices. Download better ones under iPhone Settings → Accessibility → Spoken Content → Voices. Each character can have their own voice (Edit character → Voice).</p>
 
+    <div class="section">Pictures</div>
+    <div class="field"><span>Picture model</span><div class="inline"><input id="s_imageModel" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${DEFAULT_IMAGE_MODEL}"><button class="btn" id="btnImgModels" type="button">Browse</button></div></div>
+    <label class="field"><span>Art style</span><select id="s_imageStyle"><option value="match">Match each character</option><option value="anime">Anime for everyone</option><option value="painted">Painted for everyone</option><option value="photo">Photo-realistic for everyone</option></select></label>
+    <button class="btn" id="btnPaintAll">🎨 Paint portraits for everyone missing one</button>
+    <p class="hint">Pictures are made by OpenRouter with your key, about 1¢ each with the default model (FLUX 3 Klein). In a chat, ⋯ → Ask for a picture shows the current moment. Picture models keep things fairly tasteful and may refuse very explicit scenes.</p>
+
     <div class="section">Display</div>
     <label class="field"><span>Chat text size</span><select id="s_textSize"><option value="s">Small</option><option value="m">Medium</option><option value="l">Large</option><option value="xl">Extra large</option></select></label>
 
@@ -1360,7 +1742,7 @@ function showSettings(back) {
     if (out) out.textContent = outFmt[k](el.value);
     const ev = el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input';
     el.addEventListener(ev, () => {
-      s[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : ['apiKey', 'model', 'baseUrl'].includes(k) ? el.value.trim() : el.value;
+      s[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : ['apiKey', 'model', 'baseUrl', 'imageModel'].includes(k) ? el.value.trim() : el.value;
       if (out) out.textContent = outFmt[k](el.value);
       if (k === 'provider') applyProvider();
       if (k === 'textSize') applyTextSize();
@@ -1370,7 +1752,9 @@ function showSettings(back) {
   applyProvider();
   $('#btnBack').onclick = () => { saveSettings(); back(); };
   $('#btnShowKey').onclick = e => { const f = $('#s_apiKey'), show = f.type === 'password'; f.type = show ? 'text' : 'password'; e.target.textContent = show ? 'Hide' : 'Show'; };
-  $('#btnModels').onclick = browseModels;
+  $('#btnModels').onclick = () => browseModels('chat');
+  $('#btnImgModels').onclick = () => browseModels('image');
+  $('#btnPaintAll').onclick = portraitAll;
   $('#btnTest').onclick = e => testConnection(e.target);
   $('#btnResetPrompt').onclick = () => { if (!confirm('Put the default roleplay instructions back?')) return; s.systemPrompt = DEFAULT_SYSTEM; $('#s_systemPrompt').value = DEFAULT_SYSTEM; saveSettings(); };
   $('#btnResetAvoid').onclick = () => { s.avoid = DEFAULT_AVOID; $('#s_avoid').value = DEFAULT_AVOID; saveSettings(); };
@@ -1394,17 +1778,18 @@ async function testConnection(btn) {
   finally { btn.disabled = false; btn.textContent = 'Test connection'; }
 }
 
-async function browseModels() {
-  const s = state.settings;
-  if (!base()) return toast('Add the server URL first', true);
-  const sh = openSheet(`<div class="sheet-head"><span style="width:64px"></span><b>Choose a model</b><button class="text-btn" data-x>Close</button></div>
-    <input class="sheet-search" placeholder="Search, e.g. llama, mistral, free" autocapitalize="off" autocorrect="off" spellcheck="false"><div class="model-list"><p class="empty">Loading models…</p></div>`);
+async function browseModels(kind) {
+  const s = state.settings, img = kind === 'image', key = img ? 'imageModel' : 'model';
+  if (img && s.provider !== 'openrouter') return toast('Pictures only work with OpenRouter', true);
+  if (!img && !base()) return toast('Add the server URL first', true);
+  const sh = openSheet(`<div class="sheet-head"><span style="width:64px"></span><b>${img ? 'Choose a picture model' : 'Choose a model'}</b><button class="text-btn" data-x>Close</button></div>
+    <input class="sheet-search" placeholder="${img ? 'Search, e.g. flux, seedream, grok' : 'Search, e.g. llama, mistral, free'}" autocapitalize="off" autocorrect="off" spellcheck="false"><div class="model-list"><p class="empty">Loading models…</p></div>`);
   sh.classList.add('tall');
   $('[data-x]', sh).onclick = () => closeSheet();
   const list = $('.model-list', sh), q = $('.sheet-search', sh);
   let models;
   try {
-    const res = await fetch(base() + '/models', { headers: s.apiKey ? { Authorization: 'Bearer ' + s.apiKey } : {} });
+    const res = await fetch(img ? OR_URL + '/images/models' : base() + '/models', { headers: s.apiKey ? { Authorization: 'Bearer ' + s.apiKey } : {} });
     if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
     const j = await res.json();
     models = (j.data || j.models || []).map(m => ({
@@ -1420,7 +1805,7 @@ async function browseModels() {
   const draw = () => {
     const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
     const hits = models.filter(m => words.every(w => (m.id + ' ' + m.name).toLowerCase().includes(w))).slice(0, 250);
-    list.innerHTML = hits.map(m => `<button class="model${m.id === s.model ? ' on' : ''}" data-id="${esc(m.id)}"><b>${esc(m.name)}</b><small>${esc(m.id)}${m.ctx ? ' · ' + Math.round(m.ctx / 1000) + 'k memory' : ''}${price(m)}</small></button>`).join('')
+    list.innerHTML = hits.map(m => `<button class="model${m.id === s[key] ? ' on' : ''}" data-id="${esc(m.id)}"><b>${esc(m.name)}</b><small>${esc(m.id)}${m.ctx ? ' · ' + Math.round(m.ctx / 1000) + 'k memory' : ''}${price(m)}</small></button>`).join('')
       || '<p class="empty">No matches.</p>';
   };
   q.oninput = draw;
@@ -1428,11 +1813,11 @@ async function browseModels() {
   list.onclick = e => {
     const b = e.target.closest('[data-id]');
     if (!b) return;
-    s.model = b.dataset.id;
+    s[key] = b.dataset.id;
     saveSettings();
-    if ($('#s_model')) $('#s_model').value = s.model;
+    if ($('#s_' + key)) $('#s_' + key).value = s[key];
     closeSheet();
-    toast('Model set');
+    toast(img ? 'Picture model set' : 'Model set');
   };
 }
 
@@ -1570,6 +1955,7 @@ async function restoreBackup(j) {
   state.chars = [...chars, ...state.chars.filter(c => !ids.has(c.id))];
   for (const [key, ch] of Object.entries(j.chats || {})) { const m = migrateChat(key, ch); state.chats[m.id] = m; await saveChat(m.id); }
   for (const c of state.chars) if (!c.chatId && state.chats[c.id]) c.chatId = c.id;
+  for (const [id, url] of Object.entries(j.images || {})) { state.libImages[id] = url; await DB.set('img:' + id, url).catch(storageErr); }
   state.settings = { ...DEFAULT_SETTINGS, ...(j.settings || {}), apiKey: state.settings.apiKey, lockHash: state.settings.lockHash };
   applyTextSize();
   await saveChars();
@@ -1578,7 +1964,7 @@ async function restoreBackup(j) {
   showHome();
 }
 function exportBackup() {
-  const data = { app: 'velvet', v: 2, exported: new Date().toISOString(), settings: { ...state.settings, apiKey: '', lockHash: '' }, characters: state.chars, chats: state.chats };
+  const data = { app: 'velvet', v: 2, exported: new Date().toISOString(), settings: { ...state.settings, apiKey: '', lockHash: '' }, characters: state.chars, chats: state.chats, images: state.libImages };
   return shareFile(JSON.stringify(data), `velvet-backup-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
 }
 
@@ -1598,11 +1984,15 @@ async function init() {
     state.settings = { ...DEFAULT_SETTINGS, ...((await DB.get('settings')) || {}) };
     state.chars = ((await DB.get('characters')) || []).map(normalizeChar);
     for (const k of await DB.keys()) {
+      if (String(k).startsWith('img:')) { state.libImages[k.slice(4)] = await DB.get(k); continue; }
       if (!String(k).startsWith('chat:')) continue;
       const ch = migrateChat(k.slice(5), await DB.get(k));
       state.chats[ch.id] = ch;
     }
-    for (const c of state.chars) if (!c.chatId && state.chats[c.id]) c.chatId = c.id;
+    for (const c of state.chars) {
+      if (!c.chatId && state.chats[c.id]) c.chatId = c.id;
+      if (c.libId && !c.avatar && state.libImages[c.libId]) c.avatar = state.libImages[c.libId];
+    }
   } catch (e) { storageErr(e); }
   applyTextSize();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});

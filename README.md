@@ -26,8 +26,13 @@ makes a bigger difference than any setting.
 
 ## Features
 
-- **Discover**: 26 built-in characters (anime, fantasy, realistic, sci-fi, supernatural), each with their own voice,
-  quirks and two stories to start from. Filter by category or search.
+- **Discover**: 40 built-in characters (anime, fantasy, realistic, sci-fi, supernatural, plus an isekai narrator who
+  plays a whole world), each with their own voice, quirks and two stories to start from. Filter by category or search.
+- **Pictures**: tap "Give everyone a portrait" on Discover (about 36¢ for all 40), or "Make a picture" on any
+  profile. In a chat, ⋯ → Ask for a picture paints the current moment. Pictures are made by OpenRouter's image
+  models with your key (FLUX 3 Klein by default, about 1¢ each). Change the model and art style in Settings → Pictures.
+- **Group chats** (+ → Start a group chat): 2 to 6 characters in one scene. Say a name and that character answers.
+  Tap a name above the message box to make them talk next. "Natural", "Take turns" or "Everyone" reply styles.
 - **Stories**: every character can have several opening scenarios. Start as many separate chats as you like (⋯ → All chats).
 - **Steer the story** (⋯ menu): set reply length and a director's note ("slow burn", "add a twist"…) that guides
   every reply until you clear it.
