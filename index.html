@@ -1,0 +1,1635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Velvet">
+<meta name="theme-color" content="#0c0a10">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<title>Velvet</title>
+<style>
+:root{
+  --bg:#0c0a10;--panel:#16121d;--panel2:#1f1929;--line:#2a2235;--text:#f3eef8;--muted:#9b91aa;--dim:#6f6680;
+  --accent:#e2477f;--grad:linear-gradient(135deg,#8a46ff,#e2477f);--bot:#1b1624;--act:#b9aecb;--danger:#ff5d6c;
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--fs:16px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a{color:var(--accent)}
+#app{position:fixed;left:0;right:0;top:0;height:var(--app-h,100dvh);max-width:720px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;overflow:clip}
+
+/* bars */
+.bar{display:flex;align-items:center;gap:6px;padding:calc(var(--safe-t) + 6px) 8px 6px;min-height:56px;background:rgba(12,10,16,.86);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);position:relative;z-index:3;flex-shrink:0}
+.bar h2{flex:1;text-align:center;font-size:17px;margin:0;font-weight:650}
+.logo{font-size:26px;font-weight:800;margin:0 0 0 8px;letter-spacing:-.6px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar-actions{margin-left:auto;display:flex;gap:2px}
+.icon-btn{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;flex-shrink:0}
+.icon-btn:active{background:var(--panel2)}
+.icon-btn svg{width:23px;height:23px}
+.text-btn{padding:8px 10px;color:var(--muted);font-size:16px;min-width:64px}
+.text-btn.strong{color:var(--accent);font-weight:650}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:1}
+
+/* tab bar */
+.tabs{display:flex;flex-shrink:0;border-top:1px solid var(--line);background:rgba(12,10,16,.92);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);padding:4px 0 calc(var(--safe-b) + 2px);position:relative;z-index:3}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:var(--dim);font-size:11px;font-weight:600}
+.tabs button svg{width:24px;height:24px}
+.tabs button.on{color:var(--accent)}
+
+/* avatars */
+.av{display:inline-grid;place-items:center;border-radius:50%;background-size:cover;background-position:center;flex-shrink:0;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3);line-height:1}
+.av .emo{font-style:normal;font-size:1.3em;text-shadow:none}
+.av28{width:28px;height:28px;font-size:12px}.av36{width:36px;height:36px;font-size:15px}
+.av56{width:56px;height:56px;font-size:22px}.av96{width:96px;height:96px;font-size:38px}
+
+/* chats list */
+.home{padding:6px 0 100px}
+.row{display:flex;gap:12px;align-items:center;width:100%;padding:10px 16px;text-align:left}
+.row:active{background:var(--panel)}
+.row-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.row-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.row-top b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-top small{color:var(--dim);font-size:12px;flex-shrink:0}
+.row-sub{color:var(--muted);font-size:14px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card{display:flex;flex-direction:column;gap:3px;margin:8px 16px 10px;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(138,70,255,.16),rgba(226,71,127,.16));border:1px solid rgba(226,71,127,.32);text-align:left;width:calc(100% - 32px);position:relative}
+.card span{color:var(--muted);font-size:14px}
+.card .x{position:absolute;right:6px;top:6px;width:32px;height:32px;color:var(--muted);font-size:20px}
+.fab{position:absolute;right:20px;bottom:calc(var(--safe-b) + 84px);width:58px;height:58px;border-radius:50%;background:var(--grad);display:grid;place-items:center;box-shadow:0 10px 28px rgba(226,71,127,.35);z-index:4}
+.fab svg{width:28px;height:28px}
+.empty{color:var(--muted);text-align:center;padding:36px 24px;font-size:15px;margin:0}
+.empty-cta{text-align:center;padding:40px 32px}
+.empty-cta p{color:var(--muted);margin:0 0 16px}
+
+/* discover */
+.disc{padding:10px 0 24px}
+.searchbox{padding:0 16px 10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chips.wrap{flex-wrap:wrap;overflow:visible;padding:0 0 12px}
+.chip{flex-shrink:0;padding:7px 14px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:14px;color:var(--muted);white-space:nowrap}
+.chip.on{background:var(--grad);color:#fff;border-color:transparent}
+.chip:active{filter:brightness(1.25)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px}
+@media (min-width:560px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.pcard{border-radius:18px;overflow:hidden;background:var(--panel);border:1px solid var(--line);text-align:left;display:flex;flex-direction:column}
+.pcard:active{transform:scale(.98)}
+.pcard .art{aspect-ratio:1/1;display:grid;place-items:center;position:relative}
+.pcard .art i{font-style:normal;font-size:58px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
+.pcard .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pcard .badge{position:absolute;left:8px;top:8px;font-style:normal;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff}
+.pcard .info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px}
+.pcard b{font-weight:650;font-size:15px}
+.pcard b small{font-weight:500;color:var(--dim)}
+.pcard .info>span{font-size:13px;color:var(--muted);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* profile + scenes */
+.prof{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:4px 8px 14px}
+.prof h3{margin:6px 0 0;font-size:22px}
+.prof h3 small{font-weight:500;color:var(--dim);font-size:16px}
+.prof .tagline{margin:0;color:var(--muted)}
+.tagrow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0}
+.tagrow span{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.prof .bio{margin:6px 0 0;font-size:15px;line-height:1.5;color:var(--text);text-align:left}
+.scene{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);margin-bottom:8px}
+.scene:active{filter:brightness(1.2)}
+.scene>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.scene small{color:var(--muted);font-size:13px;line-height:1.35}
+.scene>i{font-style:normal;font-weight:700;font-size:13px;padding:7px 12px;border-radius:999px;background:var(--grad);color:#fff;flex-shrink:0}
+.chatrow{display:flex;align-items:center;gap:8px;padding:6px 4px 6px 12px;border-radius:12px}
+.chatrow.on{background:rgba(226,71,127,.12)}
+.chatrow>span{flex:1;min-width:0;display:flex;flex-direction:column;cursor:pointer;padding:6px 0}
+.chatrow small{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chatrow .icon-btn svg{width:19px;height:19px;color:var(--dim)}
+
+/* chat */
+.bg-wrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.chat-bg{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(44px) saturate(1.2);opacity:.22}
+.chat-title{flex:1;display:flex;align-items:center;gap:10px;min-width:0;text-align:left;padding:4px;border-radius:12px}
+.chat-title>span:last-child{display:flex;flex-direction:column;min-width:0}
+.chat-title b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:650}
+.chat-title small{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msgs{padding:16px 12px 10px;display:flex;flex-direction:column;gap:14px}
+.scene-note{align-self:center;max-width:92%;text-align:center;font-size:13px;color:var(--dim);font-style:italic;padding:2px 10px}
+.msg{display:flex;gap:8px}
+.msg.user{justify-content:flex-end}
+.msg .col{display:flex;flex-direction:column;align-items:flex-start;min-width:0;max-width:86%}
+.msg .name{font-size:12px;color:var(--muted);margin:0 0 3px 6px}
+.msg.bot>.av{margin-top:20px}
+.bubble{padding:10px 14px;border-radius:18px;overflow-wrap:anywhere;font-size:var(--fs);line-height:1.5;user-select:text;-webkit-user-select:text}
+.bot .bubble{background:var(--bot);border:1px solid var(--line);border-top-left-radius:6px}
+.user .bubble{background:var(--grad);color:#fff;border-bottom-right-radius:6px;max-width:82%}
+.bubble em{color:var(--act)}
+.user .bubble em{color:rgba(255,255,255,.8)}
+.swipes{display:flex;align-items:center;gap:2px;margin-top:4px;color:var(--muted);font-size:13px}
+.swipes button{min-width:38px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:22px;line-height:1;color:var(--muted)}
+.swipes button:active{background:var(--panel2)}
+.swipes button:disabled{opacity:.25}
+.swipes svg{width:18px;height:18px}
+.typing{display:inline-flex;gap:4px;padding:6px 2px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25;transform:none}40%{opacity:1;transform:translateY(-3px)}}
+.retry{display:flex;align-items:center;gap:10px;align-self:center;max-width:92%;padding:10px 12px 10px 14px;border-radius:14px;background:rgba(255,93,108,.1);border:1px solid rgba(255,93,108,.3);font-size:14px;color:#ffc2c8}
+.retry button{padding:7px 12px;border-radius:10px;background:var(--panel2);color:var(--text);font-weight:600;flex-shrink:0}
+.composer{position:relative;z-index:3;display:flex;flex-direction:column;gap:8px;padding:8px 10px calc(var(--safe-b) + 8px);background:rgba(12,10,16,.9);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid var(--line);flex-shrink:0}
+.kb .composer{padding-bottom:8px}
+#extras:empty{display:none}
+#extras{display:flex;flex-direction:column;gap:8px}
+.input-row{display:flex;align-items:flex-end;gap:8px}
+.composer textarea{flex:1;resize:none;height:44px;max-height:140px;padding:11px 16px;border-radius:22px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;font-size:16px;line-height:1.35;outline:none}
+.composer textarea:focus{border-color:#4b3d60}
+.send{width:44px;height:44px;border-radius:50%;background:var(--grad);display:grid;place-items:center;flex-shrink:0;color:#fff}
+.send svg{width:21px;height:21px}
+.send.stop{background:var(--panel2);border:1px solid var(--line);color:var(--text)}
+.tool{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;color:var(--muted);background:var(--panel);border:1px solid var(--line)}
+.tool svg{width:21px;height:21px}
+.tool:active{color:var(--accent)}
+.steer-pill{align-self:flex-start;max-width:100%;padding:6px 12px;border-radius:999px;font-size:13px;color:#ffd0e0;background:rgba(226,71,127,.14);border:1px solid rgba(226,71,127,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.suggest{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.suggest::-webkit-scrollbar{display:none}
+.sugg{flex-shrink:0;width:min(78%,300px);text-align:left;padding:9px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);font-size:14px;line-height:1.35}
+.sugg em{color:var(--act)}
+.sugg.x{width:auto;color:var(--muted)}
+.sugg.loading{width:auto}
+
+/* forms */
+.form{padding:12px 16px calc(var(--safe-b) + 48px)}
+.field{display:block;margin-bottom:16px;min-width:0}
+.field>span,.field>summary{display:block;font-size:13px;color:var(--muted);margin:0 0 6px 4px;font-weight:600}
+.field em,.section em{font-weight:400;color:var(--dim);font-style:normal;text-transform:none;letter-spacing:0}
+.field summary{cursor:pointer;list-style:none}
+.field summary::-webkit-details-marker{display:none}
+.field summary::before{content:"▸ ";color:var(--dim)}
+details[open]>summary::before{content:"▾ "}
+details[open]>summary{margin-bottom:10px}
+input:not([type=checkbox]):not([type=range]),textarea,select{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:inherit;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+input:focus,textarea:focus,select:focus{border-color:#4b3d60}
+textarea{resize:vertical;line-height:1.45}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%239b91aa' stroke-width='2'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px}
+.section{margin:26px 0 10px 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.section:first-child{margin-top:8px}
+.hint{font-size:13px;color:var(--dim);margin:-8px 4px 16px;line-height:1.4}
+.inline{display:flex;gap:8px}
+.inline input{flex:1;min-width:0}
+.inline2{display:flex;gap:10px}
+.inline2 .grow{flex:1}
+.inline2 .emo-f{width:86px;flex-shrink:0}
+.inline2 .emo-f input{text-align:center;font-size:22px;padding:9px 6px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);font-weight:600;margin-bottom:10px}
+.btn:active{filter:brightness(1.2)}
+.btn:disabled{opacity:.5}
+.btn.primary{background:var(--grad);border:0;color:#fff}
+.inline .btn{width:auto;margin:0;padding:0 16px;flex-shrink:0}
+.btn.danger{color:var(--danger)}
+.range-row{display:flex;align-items:center;gap:12px;padding:4px 4px 0}
+.range-row input{flex:1;accent-color:var(--accent)}
+.range-row output{min-width:48px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);margin-bottom:10px}
+.switch{-webkit-appearance:none;appearance:none;width:51px;height:31px;border-radius:16px;background:#3a3146;position:relative;transition:background .2s;flex-shrink:0;margin:0;cursor:pointer}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch:checked{background:var(--accent)}
+.switch:checked::after{transform:translateX(20px)}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;padding:8px 4px;border-radius:9px;font-size:14px;color:var(--muted)}
+.seg button.on{background:var(--panel2);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.avatar-pick{display:flex;flex-direction:column;align-items:center;gap:4px;margin:8px 0 20px}
+.avatar-btn{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--accent);font-size:14px;font-weight:600}
+.scene-edit{padding:12px;border-radius:16px;background:var(--panel2);border:1px solid var(--line);margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.scene-edit-head{display:flex;gap:6px;align-items:center}
+.scene-edit-head input{font-weight:600}
+.scene-edit textarea,.scene-edit input{background:var(--panel)}
+.foot{text-align:center;color:var(--dim);font-size:12px;margin-top:28px}
+
+/* sheets */
+.sheet-back{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:50;opacity:0;transition:opacity .2s}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-radius:20px 20px 0 0;padding:6px 14px calc(var(--safe-b) + 12px);z-index:51;transform:translateY(100%);transition:transform .26s cubic-bezier(.2,.8,.2,1);max-height:90%;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.kb .sheet{padding-bottom:12px}
+.sheet.open{transform:none}.sheet-back.open{opacity:1}
+.sheet.tall{height:90%}
+.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px;flex-shrink:0}
+.sheet-title{font-size:13px;color:var(--muted);text-align:center;padding:0 0 6px;font-weight:600}
+.sheet-item{display:flex;align-items:center;gap:14px;width:100%;padding:14px 12px;border-radius:12px;text-align:left;font-size:16px}
+.sheet-item:active{background:var(--panel2)}
+.sheet-item svg{width:21px;height:21px;color:var(--muted)}
+.sheet-item.danger,.sheet-item.danger svg{color:var(--danger)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:0 0 8px;flex-shrink:0}
+.sheet-head b{font-size:16px}
+.sheet-text{flex:1;min-height:180px}
+.sheet .field textarea{background:var(--panel2)}
+.model-list{flex:1;overflow-y:auto;margin-top:8px;-webkit-overflow-scrolling:touch}
+.model{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:12px}
+.model b{display:block;font-weight:600;font-size:15px}
+.model small{color:var(--muted);font-size:12px;word-break:break-all}
+.model.on{background:rgba(226,71,127,.14)}
+.model:active{background:var(--panel2)}
+
+/* lock + privacy cover */
+#lock,#cover{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding-bottom:var(--safe-b)}
+#cover{z-index:190}
+#lock p{color:var(--muted);margin:0}
+.dots{display:flex;gap:16px;margin:4px 0 10px}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--muted)}
+.dots i.on{background:var(--accent);border-color:var(--accent)}
+.pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px}
+.pad button{width:76px;height:76px;border-radius:50%;background:var(--panel2);font-size:28px;font-weight:500}
+.pad button:active{background:var(--line)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+
+.toast{position:fixed;left:50%;top:calc(var(--safe-t) + 12px);transform:translate(-50%,-16px);background:#2b2338;color:var(--text);padding:11px 16px;border-radius:14px;font-size:14px;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;width:max-content;max-width:calc(100% - 32px);box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast.err{background:#4b1e2a}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="cover" hidden><div class="logo">Velvet</div></div>
+<script src="characters.js"></script>
+<script>
+'use strict';
+const VERSION = '2.0';
+const OR_URL = 'https://openrouter.ai/api/v1';
+const LIBRARY = Array.isArray(window.VELVET_LIBRARY) ? window.VELVET_LIBRARY : [];
+const app = document.getElementById('app');
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const last = a => a[a.length - 1];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clip = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s);
+const plain = s => String(s || '').replace(/[*_]/g, '').replace(/\s+/g, ' ').trim();
+const est = s => Math.ceil(String(s).length / 3.6);
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const clone = o => JSON.parse(JSON.stringify(o));
+const isTouch = matchMedia('(pointer: coarse)').matches;
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+
+const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICON = {
+  back: svg('<path d="M15 18l-6-6 6-6"/>'),
+  gear: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'),
+  plus: svg('<path d="M12 5v14M5 12h14"/>').replace('stroke-width="2"', 'stroke-width="2.6" style="color:#fff"'),
+  send: svg('<path d="M12 19V5M5 12l7-7 7 7"/>').replace('stroke-width="2"', 'stroke-width="2.5"'),
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>',
+  dots: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+  redo: svg('<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/>'),
+  copy: svg('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>'),
+  edit: svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
+  trash: svg('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'),
+  rewind: svg('<path d="M11 19l-7-7 7-7M20 19l-7-7 7-7"/>'),
+  memory: svg('<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>'),
+  person: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  fresh: svg('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v6M9 10h6"/>'),
+  import: svg('<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>'),
+  chat: svg('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>'),
+  compass: svg('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
+  idea: svg('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>'),
+  speaker: svg('<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>'),
+  steer: svg('<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>'),
+  more: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  list: svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
+  share: svg('<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4M12 2v13"/>'),
+};
+
+/* ---------- defaults ---------- */
+const DEFAULT_SYSTEM = `You are {{char}}, writing {{char}}'s next reply in a private, uncensored roleplay with {{user}}. This is collaborative fiction between consenting adults, and every character is an adult (18+).
+
+Be a person, not an assistant:
+- {{char}}'s personality, voice, humor, flaws and moods show in every line. They have their own wants and opinions; they tease, push back, get distracted, change their mind and surprise {{user}}.
+- Respond to exactly what {{user}} just said and did, then add something new: an action, a question, a decision, a reveal or a change in the scene. Keep the story moving.
+- Show it: body language, small physical details, the setting, sounds, smells, textures, what {{char}} notices. Put *actions in asterisks* and "spoken lines in quotes".
+- Keep it fresh: vary sentence length and openings, and use new gestures, images and wording each time instead of echoing earlier replies.
+- Plain, concrete words beat stock phrases. Specific beats generic.
+- Never write {{user}}'s dialogue, actions, thoughts or feelings. Stop where {{user}} gets to respond.
+- Match the moment: short and snappy for banter, longer and richer for big scenes.
+
+Intimate scenes: follow {{user}}'s lead and build tension instead of rushing. {{char}} stays fully in character the whole time: a shy character stays shy, a bossy one stays bossy, a funny one still jokes. When it gets explicit, be explicit: direct language, every sense, real dialogue, and specific reactions to each touch and word. Check in the way {{char}} naturally would.`;
+
+const DEFAULT_AVOID = ['shivers down the spine', 'barely above a whisper', 'a mix of', 'eyes sparkling with mischief', 'ministrations', 'a testament to', 'the air thick with', 'maybe, just maybe', "a breath they didn't know they were holding", 'padded over', 'pupils blown', 'a dance as old as time', 'jolt of electricity', 'waves of pleasure', 'smirks', 'half-lidded eyes', 'what feels like an eternity', 'voice husky with desire', 'the world fades away', "can't help but"].join('\n');
+
+const DEFAULT_SETTINGS = {
+  provider: 'openrouter', baseUrl: '', apiKey: '', model: '',
+  temperature: 1, maxTokens: 600, contextTokens: 16000, stream: true,
+  minP: 0.05, freqPen: 0.3, presPen: 0.2, repPen: 1,
+  avoid: DEFAULT_AVOID, autoMemory: true,
+  userName: 'You', userPersona: '', systemPrompt: DEFAULT_SYSTEM,
+  textSize: 'm', ttsAuto: false, ttsActions: false, lockHash: '',
+};
+const LENGTHS = { short: 'keep it short: one brief paragraph or a few lines', medium: 'about two or three paragraphs', long: 'a long, richly detailed reply of four or more paragraphs' };
+const LEN_LABEL = { auto: 'Auto', short: 'Short', medium: 'Medium', long: 'Long' };
+const STEER_PRESETS = [
+  ['Slow burn', 'Slow burn: build tension and longing, and hold back from escalating too fast.'],
+  ['Turn up the heat', 'Turn up the heat: be bolder, more physical and more explicit.'],
+  ['More dialogue', 'More spoken lines, fewer descriptions.'],
+  ['More detail', 'Richer detail: senses, surroundings and small physical reactions.'],
+  ['Add a twist', 'Bring in an unexpected twist or complication.'],
+  ['Time skip', 'Skip ahead to the next meaningful moment.'],
+  ['Softer', 'Be softer, warmer and more affectionate.'],
+  ['Take charge', '{{char}} takes the lead and makes the next move.'],
+];
+const CATS = ['All', 'Anime', 'Fantasy', 'Realistic', 'Sci-fi', 'Supernatural', 'Female', 'Male', 'Non-binary', 'Dominant', 'Submissive', 'Slow burn', 'Comedy', 'Wholesome'];
+const TEXT_SIZES = { s: '15px', m: '16px', l: '18px', xl: '20px' };
+
+/* ---------- storage (IndexedDB key/value) ---------- */
+const DB = (() => {
+  let dbp;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open('velvet', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+  const tx = async (mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction('kv', mode);
+      const req = fn(t.objectStore('kv'));
+      t.oncomplete = () => res(req && req.result);
+      t.onerror = t.onabort = () => rej(t.error);
+    });
+  };
+  return {
+    get: k => tx('readonly', s => s.get(k)),
+    set: (k, v) => tx('readwrite', s => s.put(v, k)),
+    del: k => tx('readwrite', s => s.delete(k)),
+    keys: () => tx('readonly', s => s.getAllKeys()),
+  };
+})();
+let storageWarned = false;
+const storageErr = e => { if (!storageWarned) { storageWarned = true; toast("Couldn't save on this device: " + (e && e.message || e), true); } };
+const saveChars = () => DB.set('characters', state.chars).catch(storageErr);
+const saveChat = id => state.chats[id] ? DB.set('chat:' + id, state.chats[id]).catch(storageErr) : DB.del('chat:' + id).catch(storageErr);
+let saveTimer;
+const saveSettings = () => DB.set('settings', state.settings).catch(storageErr);
+const saveSettingsSoon = () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveSettings, 300); };
+
+const state = {
+  settings: { ...DEFAULT_SETTINGS }, chars: [], chats: {}, drafts: {}, view: '', current: null,
+  busy: false, abort: null, lastError: null, sheet: null, suggestions: null, filter: 'All', query: '',
+  summarizing: new Set(), hiddenAt: 0, ttsPrimed: false,
+};
+
+/* ---------- helpers ---------- */
+const charById = id => state.chars.find(c => c.id === id);
+const curChat = () => state.chats[state.current];
+const curChar = () => { const ch = curChat(); return ch && charById(ch.charId); };
+const textOf = m => (m.role === 'assistant' ? (m.swipes[m.sw] ?? '') : m.content);
+const setText = (m, t) => { if (m.role === 'assistant') m.swipes[m.sw] = t; else m.content = t; };
+const base = () => (state.settings.provider === 'openrouter' ? OR_URL : (state.settings.baseUrl || '')).trim().replace(/\/+$/, '');
+const modelFor = c => ((c && c.model && c.model.trim()) || state.settings.model || '').trim();
+
+function fill(t, c) {
+  const u = state.settings.userName || 'You';
+  return String(t || '').replace(/\{\{char\}\}|<bot>/gi, c.name).replace(/\{\{user\}\}|<user>/gi, u);
+}
+function fmt(t) {
+  let h = esc(String(t).trim());
+  h = h.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+  return h.replace(/\n/g, '<br>');
+}
+const HUES = [330, 280, 205, 18, 160, 250, 350, 45];
+function hues(c) {
+  if (Array.isArray(c.colors) && c.colors.length === 2) return c.colors;
+  let h = 0;
+  for (const ch of c.name || '?') h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const a = HUES[h % HUES.length];
+  return [a, (a + 40) % 360];
+}
+const gradCss = c => { const [a, b] = hues(c); return `background:linear-gradient(135deg,hsl(${a} 70% 56%),hsl(${b} 72% 32%))`; };
+function avatarHtml(c, cls) {
+  if (c.avatar) return `<span class="av ${cls}" style="background-image:url('${c.avatar}')"></span>`;
+  const inner = c.emoji ? `<i class="emo">${esc(c.emoji)}</i>` : esc(((c.name || '?').trim()[0] || '?').toUpperCase());
+  return `<span class="av ${cls}" style="${gradCss(c)}">${inner}</span>`;
+}
+function ago(ts) {
+  if (!ts) return '';
+  const d = (Date.now() - ts) / 1000;
+  if (d < 60) return 'now';
+  if (d < 3600) return Math.floor(d / 60) + 'm';
+  if (d < 86400) return Math.floor(d / 3600) + 'h';
+  if (d < 604800) return new Date(ts).toLocaleDateString(undefined, { weekday: 'short' });
+  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+let toastTimer;
+function toast(msg, err) {
+  let t = $('#toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.append(t); t.onclick = () => t.classList.remove('show'); }
+  t.textContent = msg;
+  t.classList.toggle('err', !!err);
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), err ? 5500 : 2200);
+}
+function niceError(e) {
+  if (e.name === 'AbortError') return 'Stopped';
+  const st = e.status, m = e.message || String(e);
+  if (st === 401) return 'Your API key was rejected. Check it in Settings.';
+  if (st === 402) return 'Out of credits. Top up your OpenRouter account.';
+  if (st === 429) return 'Too many requests right now. Wait a moment, then retry.';
+  if (st === 404 || /no endpoints|not a valid model|model not found/i.test(m)) return 'Model not available. Pick another in Settings. (' + m + ')';
+  if (e instanceof TypeError) return "Couldn't reach the AI service. Check your connection" + (state.settings.provider === 'custom' ? ' and the server URL.' : '.');
+  return m;
+}
+function configured() {
+  const s = state.settings;
+  if (s.provider === 'openrouter' && !s.apiKey) return 'Add your OpenRouter key in Settings first.';
+  if (s.provider === 'custom' && !s.baseUrl) return 'Add your server URL in Settings first.';
+  if (!s.model) return 'Pick a model in Settings first.';
+  return '';
+}
+function ready(backTo) {
+  const msg = configured();
+  if (!msg) return true;
+  toast(msg, true);
+  showSettings(backTo);
+  return false;
+}
+function pickFile(accept, cb) {
+  const i = document.createElement('input');
+  i.type = 'file'; i.accept = accept; i.hidden = true;
+  i.onchange = () => { if (i.files[0]) cb(i.files[0]); i.remove(); };
+  document.body.append(i);
+  i.click();
+}
+function copyText(t) {
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Copied'), () => toast("Couldn't copy", true));
+}
+async function shareFile(text, name, type) {
+  const blob = new Blob([text], { type });
+  const file = new File([blob], name, { type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+const applyTextSize = () => document.documentElement.style.setProperty('--fs', TEXT_SIZES[state.settings.textSize] || '16px');
+
+/* ---------- characters & chats ---------- */
+function normalizeChar(c) {
+  c.tags = Array.isArray(c.tags) ? c.tags : [];
+  if (!Array.isArray(c.scenes) || !c.scenes.length) {
+    const greets = [c.greeting, ...(c.altGreetings || [])].filter(g => g && String(g).trim());
+    c.scenes = greets.length
+      ? greets.map((g, k) => ({ title: k ? `Alternate ${k}` : 'Main', scenario: c.scenario || '', greeting: g }))
+      : [{ title: 'Main', scenario: c.scenario || '', greeting: '' }];
+  }
+  delete c.greeting; delete c.altGreetings; delete c.scenario;
+  for (const k of ['name', 'tagline', 'personality', 'style', 'examples', 'emoji', 'avatar', 'model', 'bio']) c[k] = c[k] == null ? '' : String(c[k]);
+  c.voice = c.voice && typeof c.voice === 'object' ? c.voice : {};
+  return c;
+}
+function migrateChat(key, ch) {
+  if (!ch.charId) { ch.charId = key; ch.id = key; } // v1 stored one chat per character, keyed by the character id
+  ch.id = ch.id || key;
+  ch.messages = ch.messages || [];
+  for (const k of ['title', 'scenario', 'memory', 'summary', 'note']) if (ch[k] == null) ch[k] = '';
+  ch.title = ch.title || 'Chat';
+  ch.length = ch.length || 'auto';
+  ch.summarizedUpTo = ch.summarizedUpTo || 0;
+  ch.created = ch.created || (ch.messages[0] && ch.messages[0].ts) || Date.now();
+  return ch;
+}
+const chatsOf = c => Object.values(state.chats).filter(ch => ch.charId === c.id).sort((a, b) => lastTs(b, true) - lastTs(a, true));
+function lastTs(ch, any) {
+  for (let k = ch.messages.length - 1; k >= 0; k--) if (any || !ch.messages[k].greeting) return ch.messages[k].ts || 0;
+  return any ? ch.created || 0 : 0;
+}
+const activeChat = c => state.chats[c.chatId] || chatsOf(c)[0] || null;
+const activity = c => Math.max(0, ...chatsOf(c).map(ch => lastTs(ch)));
+const libHave = l => state.chars.find(c => c.libId === l.id);
+
+function newChat(c, scene) {
+  scene = scene || c.scenes[0] || { title: 'Chat', scenario: '', greeting: '' };
+  const ch = migrateChat('', { id: uid(), charId: c.id, title: scene.title || 'Chat', scenario: scene.scenario || '', created: Date.now() });
+  if (scene.greeting && scene.greeting.trim()) ch.messages.push({ id: uid(), role: 'assistant', swipes: [scene.greeting], sw: 0, ts: Date.now(), greeting: true });
+  state.chats[ch.id] = ch;
+  c.chatId = ch.id;
+  saveChat(ch.id); saveChars();
+  return ch;
+}
+function deleteChat(id) {
+  const ch = state.chats[id];
+  if (!ch) return;
+  delete state.chats[id];
+  saveChat(id);
+  const c = charById(ch.charId);
+  if (c && c.chatId === id) { const next = chatsOf(c)[0]; c.chatId = next ? next.id : ''; saveChars(); }
+}
+function adopt(lib) {
+  let c = libHave(lib);
+  if (!c) {
+    c = normalizeChar({ ...clone(lib), id: uid(), libId: lib.id, created: Date.now() });
+    delete c.age;
+    c.ageLabel = lib.age || '';
+    state.chars.unshift(c);
+    saveChars();
+  }
+  return c;
+}
+function openChar(c) {
+  const ch = activeChat(c);
+  if (ch) showChat(ch.id); else scenePicker(c);
+}
+
+/* ---------- prompt building ---------- */
+function writingNote(c, chat, upto) {
+  const bits = [`stay in character as ${c.name}`];
+  if (LENGTHS[chat.length]) bits.push(LENGTHS[chat.length]);
+  if (chat.note) bits.push('direction: ' + fill(chat.note, c).replace(/[.\s]+$/, ''));
+  const opens = chat.messages.slice(0, upto).filter(m => m.role === 'assistant' && !m.greeting).slice(-3)
+    .map(m => plain(textOf(m)).split(' ').slice(0, 5).join(' ').slice(0, 40)).filter(Boolean);
+  if (opens.length) bits.push(`start differently than your recent replies (${opens.map(o => `"${o}…"`).join(', ')}) and don't reuse their gestures or phrasing`);
+  return `(Note for ${c.name}'s next reply, not part of the story: ${bits.join('; ')}.)`;
+}
+
+function buildPrompt(c, chat, upto, opts = {}) {
+  const s = state.settings, F = t => fill(t, c).trim();
+  const user = s.userName || 'You';
+  const avoid = (s.avoid || '').split(/\n|,/).map(x => x.trim()).filter(Boolean);
+  const parts = [F(s.systemPrompt)];
+  if (avoid.length) parts.push('Overused phrases to replace with fresh, specific wording: ' + avoid.join('; ') + '.');
+  if (c.personality) parts.push(`[${c.name}]\n${F(c.personality)}`);
+  if (c.style) parts.push(`[How ${c.name} talks]\n${F(c.style)}`);
+  if (chat.scenario) parts.push(`[Scenario]\n${F(chat.scenario)}`);
+  if (s.userPersona) parts.push(`[${user}]\n${F(s.userPersona)}`);
+  if (chat.summary) parts.push(`[Story so far]\n${F(chat.summary)}`);
+  if (chat.memory) parts.push(`[Important memories]\n${F(chat.memory)}`);
+  if (c.examples) parts.push(`[Example dialogue, showing ${c.name}'s voice only, not events that happened]\n${F(c.examples)}`);
+  const system = parts.filter(Boolean).join('\n\n');
+  const budget = Math.max(1500, (+s.contextTokens || 8000) - (+s.maxTokens || 400));
+  let used = est(system) + 150, cut = 0;
+  const hist = [];
+  for (let k = upto - 1; k >= 0; k--) {
+    const m = chat.messages[k], t = F(textOf(m));
+    if (!t) continue;
+    const cost = est(t) + 4;
+    if (hist.length && used + cost > budget) { cut = k + 1; break; }
+    used += cost;
+    const role = m.role === 'user' ? 'user' : 'assistant';
+    if (hist.length && hist[0].role === role) hist[0].content = t + '\n\n' + hist[0].content;
+    else hist.unshift({ role, content: t });
+  }
+  // many models need user/assistant to alternate, starting and ending with the user
+  if (!hist.length || hist[0].role === 'assistant') hist.unshift({ role: 'user', content: '[Start the roleplay.]' });
+  if (opts.extra) {
+    if (last(hist).role === 'user') last(hist).content += '\n\n' + opts.extra;
+    else hist.push({ role: 'user', content: opts.extra });
+  } else if (last(hist).role === 'assistant') hist.push({ role: 'user', content: '[Continue the scene.]' });
+  if (!opts.noNote) last(hist).content += '\n\n' + writingNote(c, chat, upto);
+  const out = [{ role: 'system', content: system }, ...hist];
+  out.cut = cut;
+  return out;
+}
+
+async function callModel(messages, onDelta, signal, opts = {}) {
+  const s = state.settings;
+  if (!base()) throw new Error('Add the server URL in Settings.');
+  const stream = opts.stream ?? !!s.stream;
+  const headers = { 'Content-Type': 'application/json' };
+  if (s.apiKey) headers.Authorization = 'Bearer ' + s.apiKey.trim();
+  const body = { model: (opts.model || s.model).trim(), messages, temperature: opts.temperature ?? +s.temperature, max_tokens: opts.max_tokens || +s.maxTokens, stream };
+  if (!opts.plain) {
+    if (+s.minP > 0) body.min_p = +s.minP;
+    if (+s.freqPen) body.frequency_penalty = +s.freqPen;
+    if (+s.presPen) body.presence_penalty = +s.presPen;
+    if (+s.repPen && +s.repPen !== 1) body.repetition_penalty = +s.repPen;
+  }
+  const res = await fetch(base() + '/chat/completions', { method: 'POST', headers, body: JSON.stringify(body), signal });
+  if (!res.ok) {
+    let msg = `${res.status} ${res.statusText}`.trim();
+    try { const j = await res.json(); msg = (j.error && (j.error.message || j.error)) || j.message || msg; } catch {}
+    throw Object.assign(new Error(typeof msg === 'string' ? msg : JSON.stringify(msg)), { status: res.status });
+  }
+  if (!stream || !res.body || !/event-stream/.test(res.headers.get('content-type') || '')) {
+    const j = await res.json();
+    if (j.error) throw Object.assign(new Error(j.error.message || 'Model error'), { status: j.error.code });
+    onDelta((j.choices && j.choices[0] && (j.choices[0].message ? j.choices[0].message.content : j.choices[0].text)) || '');
+    return;
+  }
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') return;
+      let j;
+      try { j = JSON.parse(data); } catch { continue; }
+      if (j.error) throw Object.assign(new Error(j.error.message || 'Model error'), { status: j.error.code });
+      const ch = j.choices && j.choices[0];
+      const d = ch && ((ch.delta && ch.delta.content) || ch.text);
+      if (d) onDelta(d);
+    }
+  }
+}
+
+function cleanReply(t, c) {
+  t = t.trim().replace(new RegExp('^' + escRe(c.name) + '\\s*:\\s*', 'i'), '');
+  // cut the reply off if the model starts writing the user's lines, or echoes the writing note
+  const u = state.settings.userName || 'You';
+  const cut = t.search(new RegExp('\\n\\s*(' + escRe(u) + '|\\{\\{user\\}\\}|User)\\s*:|\\(Note for ', 'i'));
+  return (cut > 0 ? t.slice(0, cut) : t).trim();
+}
+const joinCont = (a, b) => (!b ? a : /[.!?…"*)\]]\s*$/.test(a) ? a.trimEnd() + '\n\n' + b.trimStart() : a.trimEnd() + ' ' + b.trimStart());
+
+/* ---------- generation ---------- */
+const nearBottom = () => { const b = $('#msgs'); return !b || b.scrollHeight - b.scrollTop - b.clientHeight < 160; };
+const scrollBottom = () => { const b = $('#msgs'); if (b) b.scrollTop = b.scrollHeight; };
+const TYPING = '<span class="typing"><i></i><i></i><i></i></span>';
+
+async function generate(c, chat, i, mode = 'reply') {
+  const m = chat.messages[i];
+  const baseText = mode === 'continue' ? textOf(m) : '';
+  state.busy = true;
+  state.abort = new AbortController();
+  state.lastError = null;
+  state.suggestions = null;
+  renderMessages(); renderExtras(); scrollBottom(); setBusyUI(true);
+  let text = '', queued = false, prompt;
+  const paint = () => {
+    queued = false;
+    const b = state.current === chat.id && $(`.msg[data-i="${i}"] .bubble`);
+    if (!b) return;
+    const stick = nearBottom();
+    b.innerHTML = fmt(fill(m.swipes[m.sw], c)) || TYPING;
+    if (stick) scrollBottom();
+  };
+  try {
+    prompt = mode === 'continue'
+      ? buildPrompt(c, chat, i + 1, { extra: '[Continue your last reply from exactly where it stopped. Do not repeat any of it.]' })
+      : buildPrompt(c, chat, i);
+    await callModel(prompt, d => {
+      text += d;
+      m.swipes[m.sw] = mode === 'continue' ? joinCont(baseText, text) : text;
+      if (!queued) { queued = true; requestAnimationFrame(paint); }
+    }, state.abort.signal, { model: modelFor(c), max_tokens: chat.length === 'long' ? Math.max(+state.settings.maxTokens, 1000) : undefined });
+    text = cleanReply(text, c);
+    if (!text) throw new Error('The model sent an empty reply. Try again, or pick another model.');
+    m.swipes[m.sw] = mode === 'continue' ? joinCont(baseText, text) : text;
+    if (state.settings.ttsAuto && state.current === chat.id) speakText(text, c);
+    autoSummarize(c, chat, prompt.cut);
+  } catch (e) {
+    text = cleanReply(text, c);
+    if (mode === 'continue') m.swipes[m.sw] = joinCont(baseText, text);
+    else if (text) m.swipes[m.sw] = text; // keep whatever arrived
+    else if (m.swipes.length > 1) { m.swipes.splice(m.sw, 1); m.sw = m.swipes.length - 1; }
+    else chat.messages.splice(i, 1);
+    if (e.name !== 'AbortError') {
+      const msg = niceError(e);
+      if (!text && mode !== 'continue') state.lastError = msg;
+      toast(msg, true);
+    }
+  } finally {
+    m.ts = Date.now();
+    state.busy = false;
+    state.abort = null;
+    saveChat(chat.id);
+    if (state.view === 'chat' && state.current === chat.id) {
+      const stick = nearBottom();
+      renderMessages(); setBusyUI(false);
+      if (stick) scrollBottom();
+    }
+  }
+}
+
+// keeps a running "story so far" once old messages start falling out of the AI's memory
+async function autoSummarize(c, chat, cut) {
+  if (!state.settings.autoMemory || !cut || state.summarizing.has(chat.id)) return;
+  const from = Math.min(chat.summarizedUpTo || 0, chat.messages.length);
+  const upto = Math.min(chat.messages.length - 6, cut + 10);
+  if (upto - from < 8) return;
+  state.summarizing.add(chat.id);
+  const user = state.settings.userName || 'You';
+  const lines = chat.messages.slice(from, upto).map(m => `${m.role === 'user' ? user : c.name}: ${plain(fill(textOf(m), c))}`).join('\n');
+  const msgs = [
+    { role: 'system', content: 'You keep the running memory for a long roleplay story between adults. Write compact bullet points in past tense: key events, how the relationship has changed, promises, names, places, details about each character, preferences that came up and anything intimate that happened, so the story stays consistent. No commentary.' },
+    { role: 'user', content: (chat.summary ? `Current memory:\n${chat.summary}\n\n` : '') + `New part of the story (${c.name} and ${user}):\n${lines}\n\nRewrite the full memory including the new part. Stay under 250 words.` },
+  ];
+  try {
+    let out = '';
+    await callModel(msgs, d => { out += d; }, undefined, { stream: false, max_tokens: 600, plain: true, temperature: 0.4, model: modelFor(c) });
+    out = out.trim();
+    if (out) { chat.summary = out; chat.summarizedUpTo = upto; saveChat(chat.id); }
+  } catch {} finally { state.summarizing.delete(chat.id); }
+}
+
+async function send() {
+  if (state.busy) { if (state.abort) state.abort.abort(); return; }
+  const chat = curChat(), c = curChar(), input = $('#input');
+  const text = input.value.trim();
+  const lastMsg = last(chat.messages);
+  if (!text && (!lastMsg || lastMsg.role !== 'user')) return;
+  if (!ready(() => showChat(chat.id))) return;
+  primeSpeech();
+  if (text) {
+    chat.messages.push({ id: uid(), role: 'user', content: text, ts: Date.now() });
+    input.value = ''; state.drafts[chat.id] = ''; autoGrow(input);
+  }
+  chat.messages.push({ id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now() });
+  await generate(c, chat, chat.messages.length - 1);
+}
+function regenerate() {
+  const chat = curChat(), c = curChar(), i = chat.messages.length - 1, m = chat.messages[i];
+  if (state.busy || !m || m.role !== 'assistant' || m.greeting) return;
+  if (!ready(() => showChat(chat.id))) return;
+  m.swipes.push(''); m.sw = m.swipes.length - 1;
+  generate(c, chat, i);
+}
+function continueReply() {
+  const chat = curChat(), c = curChar(), i = chat.messages.length - 1, m = chat.messages[i];
+  if (state.busy || !m || m.role !== 'assistant') return;
+  if (!ready(() => showChat(chat.id))) return;
+  generate(c, chat, i, 'continue');
+}
+function swipe(dir) {
+  const chat = curChat(), m = last(chat.messages);
+  if (state.busy || !m || m.role !== 'assistant') return;
+  if (dir === 'prev') { if (m.sw > 0) m.sw--; else return; }
+  else if (m.sw < m.swipes.length - 1) m.sw++;
+  else if (!m.greeting) return regenerate();
+  else return;
+  saveChat(chat.id); renderMessages();
+}
+async function suggestReplies() {
+  if (state.busy) return;
+  const chat = curChat(), c = curChar();
+  if (!ready(() => showChat(chat.id))) return;
+  const user = state.settings.userName || 'You';
+  state.suggestions = 'loading'; renderExtras();
+  try {
+    const instr = `[Out of character: write 3 different replies ${user} might send next, in ${user}'s own voice (first person), each under 30 words. Make them clearly different from each other, for example one bold, one sweet and one playful. Use *asterisks* for actions. Put each on its own line, with no numbering, labels or commentary.]`;
+    let out = '';
+    await callModel(buildPrompt(c, chat, chat.messages.length, { extra: instr, noNote: true }), d => { out += d; }, undefined, { stream: false, max_tokens: 300, model: modelFor(c) });
+    const list = out.split('\n')
+      .map(l => l.replace(/^\s*(\d+\s*[.):-]|[-•]|option\s*\d+\s*:?)\s*/i, '').replace(/^"([^"]*)"$/, '$1').trim())
+      .filter(l => l && !/^(here are|sure|okay|\[)/i.test(l)).slice(0, 3);
+    if (state.suggestions !== 'loading' || state.current !== chat.id) return;
+    state.suggestions = list.length ? list : null;
+    if (!list.length) toast('No suggestions came back. Try again.', true);
+  } catch (e) { state.suggestions = null; toast(niceError(e), true); }
+  renderExtras();
+}
+
+/* ---------- read aloud ---------- */
+const FEMALE_VOICES = ['Samantha', 'Ava', 'Allison', 'Susan', 'Zoe', 'Karen', 'Moira', 'Tessa', 'Serena', 'Kate', 'Victoria', 'Fiona', 'Nicky', 'Joelle', 'Catherine', 'Shelley', 'Sandy', 'Flo', 'Martha', 'Aria', 'Jenny', 'Zira', 'Sonia', 'Libby', 'Natasha', 'Female'];
+const MALE_VOICES = ['Daniel', 'Alex', 'Aaron', 'Fred', 'Evan', 'Nathan', 'Tom', 'Oliver', 'Arthur', 'Gordon', 'Rishi', 'Reed', 'Rocko', 'Eddy', 'Ralph', 'Guy', 'David', 'Mark', 'Ryan', 'Christopher', 'Eric', 'Male'];
+const englishVoices = () => ('speechSynthesis' in window ? speechSynthesis.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang)) : []);
+function pickVoice(c) {
+  const vs = englishVoices(), vo = c.voice || {};
+  if (!vs.length) return null;
+  if (vo.name) { const v = vs.find(x => x.name === vo.name); if (v) return v; }
+  const names = vo.gender === 'm' ? MALE_VOICES : vo.gender === 'f' ? FEMALE_VOICES : null;
+  const pool = names ? vs.filter(v => names.some(n => v.name.includes(n))) : vs;
+  const good = pool.filter(v => /enhanced|premium|neural|natural/i.test(v.name));
+  const list = good.length ? good : pool.length ? pool : vs;
+  let h = 0;
+  for (const ch of c.name || '') h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return list[h % list.length]; // the same character always gets the same voice
+}
+function speakText(t, c) {
+  if (!('speechSynthesis' in window)) return toast("This device can't read aloud", true);
+  let s = fill(t, c);
+  if (!state.settings.ttsActions) { const spoken = s.replace(/\*[^*]*\*/g, ' '); if (/[\p{L}\p{N}]/u.test(spoken)) s = spoken; }
+  s = s.replace(/[*_~"“”]/g, '').replace(/\s+/g, ' ').trim();
+  if (!s) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(s);
+  const v = pickVoice(c);
+  if (v) { u.voice = v; u.lang = v.lang; }
+  u.pitch = +(c.voice && c.voice.pitch) || 1;
+  u.rate = +(c.voice && c.voice.rate) || 1;
+  speechSynthesis.speak(u);
+}
+function primeSpeech() { // iOS only lets a page speak after a tap has spoken once
+  if (state.ttsPrimed || !state.settings.ttsAuto || !('speechSynthesis' in window)) return;
+  state.ttsPrimed = true;
+  speechSynthesis.speak(new SpeechSynthesisUtterance(' '));
+}
+if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { const sel = $('#f_voice'); if (sel && sel.dataset.fill) voiceOptions(sel, sel.dataset.fill); };
+
+/* ---------- lock ---------- */
+async function hashPin(pin) {
+  const data = new TextEncoder().encode('velvet-pin:' + pin);
+  if (crypto.subtle) return [...new Uint8Array(await crypto.subtle.digest('SHA-256', data))].map(b => b.toString(16).padStart(2, '0')).join('');
+  let x = 0;
+  for (const b of data) x = (x * 31 + b) >>> 0;
+  return 'w' + x;
+}
+function showLock(mode, done) {
+  if ($('#lock')) return;
+  const el = document.createElement('div');
+  el.id = 'lock';
+  el.innerHTML = `<div class="logo">Velvet</div><p id="lockMsg">${mode === 'set' ? 'Choose a 4-digit PIN' : 'Enter your PIN'}</p><div class="dots">${'<i></i>'.repeat(4)}</div>
+    <div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, '⌫'].map(k => (k === '' ? '<span></span>' : `<button data-k="${k}">${k}</button>`)).join('')}</div>
+    ${mode === 'set' ? '<button class="text-btn" data-cancel>Cancel</button>' : '<button class="text-btn" data-forgot>Forgot PIN?</button>'}`;
+  document.body.append(el);
+  let pin = '', first = null;
+  const msg = $('#lockMsg', el), dots = $$('.dots i', el);
+  const draw = () => dots.forEach((d, k) => d.classList.toggle('on', k < pin.length));
+  el.onclick = async e => {
+    if (e.target.closest('[data-cancel]')) return el.remove();
+    if (e.target.closest('[data-forgot]')) {
+      if (confirm('Reset Velvet? This erases every character and chat on this device.') && confirm('Really erase everything? This cannot be undone.')) {
+        indexedDB.deleteDatabase('velvet');
+        setTimeout(() => location.reload(), 300);
+      }
+      return;
+    }
+    const b = e.target.closest('[data-k]');
+    if (!b) return;
+    if (b.dataset.k === '⌫') pin = pin.slice(0, -1); else if (pin.length < 4) pin += b.dataset.k;
+    draw();
+    if (pin.length < 4) return;
+    const entered = pin;
+    pin = '';
+    setTimeout(draw, 160);
+    if (mode === 'unlock') {
+      if ((await hashPin(entered)) === state.settings.lockHash) { el.remove(); if (done) done(); }
+      else { msg.textContent = 'Wrong PIN'; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+    } else if (!first) { first = entered; msg.textContent = 'Type it again'; }
+    else if (first === entered) { state.settings.lockHash = await hashPin(entered); await saveSettings(); el.remove(); toast('App lock is on'); if (done) done(); }
+    else { first = null; msg.textContent = "Didn't match. Choose a 4-digit PIN"; }
+  };
+}
+document.addEventListener('visibilitychange', () => {
+  const locked = !!state.settings.lockHash;
+  if (document.hidden) {
+    state.hiddenAt = Date.now();
+    if (locked) $('#cover').hidden = false; // hides chats in the app switcher
+  } else {
+    $('#cover').hidden = true;
+    if (locked && Date.now() - state.hiddenAt > 30000) showLock('unlock');
+  }
+});
+
+/* ---------- views ---------- */
+function mount(html, view) {
+  closeSheet(true);
+  if (state.view === 'chat' && view !== 'chat' && state.abort) state.abort.abort(); // leaving a chat stops its reply
+  if ('speechSynthesis' in window && state.view === 'chat') speechSynthesis.cancel();
+  state.view = view;
+  app.innerHTML = html;
+}
+const tabBar = on => `<nav class="tabs"><button data-tab="home" class="${on === 'home' ? 'on' : ''}">${ICON.chat}<span>Chats</span></button><button data-tab="discover" class="${on === 'discover' ? 'on' : ''}">${ICON.compass}<span>Discover</span></button></nav>`;
+function bindTabs() {
+  $('.tabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) (b.dataset.tab === 'home' ? showHome : showDiscover)(); };
+  $('#btnSettings').onclick = () => showSettings(state.view === 'discover' ? showDiscover : showHome);
+}
+
+function showHome() {
+  state.current = null;
+  const chars = [...state.chars].sort((a, b) => (activity(b) || b.created || 0) - (activity(a) || a.created || 0));
+  const rows = chars.map(c => {
+    const ch = activeChat(c), lm = ch && last(ch.messages);
+    const preview = lm ? (lm.role === 'user' ? 'You: ' : '') + plain(fill(textOf(lm), c)) : (c.tagline || plain(c.personality));
+    return `<button class="row" data-id="${c.id}">${avatarHtml(c, 'av56')}<span class="row-main"><span class="row-top"><b>${esc(c.name)}</b><small>${ago(activity(c))}</small></span><span class="row-sub">${esc(clip(preview, 120))}</span></span></button>`;
+  }).join('');
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const need = configured();
+  mount(`
+  <header class="bar"><h1 class="logo">Velvet</h1><div class="bar-actions"><button class="icon-btn" id="btnSettings" aria-label="Settings">${ICON.gear}</button></div></header>
+  <main class="scroll home">
+    ${ios && !standalone && !lsGet('installHintDone') ? `<div class="card" id="installCard"><b>Install it like an app</b><span>In Safari, tap Share, then "Add to Home Screen".</span><button class="x" id="btnInstallX" aria-label="Dismiss">×</button></div>` : ''}
+    ${need ? `<button class="card" id="btnSetup"><b>Connect an AI model</b><span>${esc(need)}</span></button>` : ''}
+    <div class="list">${rows || `<div class="empty-cta"><p>No chats yet. Find someone you like, or make your own.</p><button class="btn primary" id="btnGoDiscover">Browse characters</button></div>`}</div>
+  </main>
+  <button class="fab" id="btnNew" aria-label="Add character">${ICON.plus}</button>
+  ${tabBar('home')}`, 'home');
+  bindTabs();
+  if ($('#btnSetup')) $('#btnSetup').onclick = () => showSettings(showHome);
+  if ($('#btnGoDiscover')) $('#btnGoDiscover').onclick = showDiscover;
+  if ($('#btnInstallX')) $('#btnInstallX').onclick = () => { lsSet('installHintDone', '1'); $('#installCard').remove(); };
+  $('.list').onclick = e => { const r = e.target.closest('.row'); if (r) openChar(charById(r.dataset.id)); };
+  $('#btnNew').onclick = () => sheetMenu([
+    ['person', 'Create a character', () => showEdit(null, showHome)],
+    ['import', 'Import character card (PNG or JSON)', () => pickFile('.png,.json,image/png,application/json', importFile)],
+    ['compass', 'Browse characters', showDiscover],
+  ]);
+}
+
+function showDiscover() {
+  const cats = CATS.filter(t => t === 'All' || LIBRARY.some(l => l.tags.includes(t)));
+  if (!cats.includes(state.filter)) state.filter = 'All';
+  mount(`
+  <header class="bar"><h1 class="logo">Discover</h1><div class="bar-actions"><button class="icon-btn" id="btnSettings" aria-label="Settings">${ICON.gear}</button></div></header>
+  <main class="scroll disc">
+    <div class="searchbox"><input id="q" type="search" placeholder="Search ${LIBRARY.length} characters" value="${esc(state.query)}" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="chips" id="cats">${cats.map(t => `<button class="chip${t === state.filter ? ' on' : ''}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    <div class="grid" id="grid"></div>
+  </main>
+  ${tabBar('discover')}`, 'discover');
+  bindTabs();
+  const draw = () => {
+    const words = state.query.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits = LIBRARY.filter(l => (state.filter === 'All' || l.tags.includes(state.filter))
+      && words.every(w => (l.name + ' ' + l.tagline + ' ' + l.tags.join(' ')).toLowerCase().includes(w)));
+    $('#grid').innerHTML = hits.map(l => `<button class="pcard" data-id="${esc(l.id)}"><span class="art" style="${gradCss(l)}"><i>${esc(l.emoji)}</i>${libHave(l) ? '<em class="badge">In your chats</em>' : ''}</span><span class="info"><b>${esc(l.name)}<small>${l.age ? ' · ' + esc(l.age) : ''}</small></b><span>${esc(l.tagline)}</span></span></button>`).join('')
+      || '<p class="empty" style="grid-column:1/-1">No one matches that.</p>';
+  };
+  draw();
+  $('#q').oninput = e => { state.query = e.target.value; draw(); };
+  $('#cats').onclick = e => {
+    const b = e.target.closest('[data-t]');
+    if (!b) return;
+    state.filter = b.dataset.t;
+    $$('#cats .chip').forEach(x => x.classList.toggle('on', x === b));
+    draw();
+  };
+  $('#grid').onclick = e => { const b = e.target.closest('[data-id]'); if (b) showProfile(LIBRARY.find(l => l.id === b.dataset.id)); };
+}
+
+const sceneButtons = (c, scenes) => scenes.map((s, k) => `<button class="scene" data-k="${k}"><span><b>${esc(s.title)}</b><small>${esc(clip(fill(s.scenario, c), 140))}</small></span><i>Start</i></button>`).join('');
+
+function showProfile(lib) {
+  const mine = libHave(lib), has = mine && chatsOf(mine).length;
+  const sh = openSheet(`<div class="sheet-body">
+    <div class="prof">${avatarHtml(lib, 'av96')}<h3>${esc(lib.name)}${lib.age ? `<small> · ${esc(lib.age)}</small>` : ''}</h3><p class="tagline">${esc(lib.tagline)}</p>
+      <div class="tagrow">${lib.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div><p class="bio">${esc(fill(lib.bio, lib))}</p></div>
+    ${has ? '<button class="btn primary" data-continue>Continue your chat</button>' : ''}
+    <div class="section">${has ? 'Or start a new story' : 'Pick a story to start'}</div>
+    ${sceneButtons(lib, lib.scenes)}
+  </div>`);
+  sh.classList.add('tall');
+  sh.onclick = e => {
+    if (e.target.closest('[data-continue]')) { closeSheet(true); openChar(mine); return; }
+    const b = e.target.closest('[data-k]');
+    if (!b) return;
+    const c = adopt(lib);
+    closeSheet(true);
+    showChat(newChat(c, c.scenes[+b.dataset.k]).id);
+  };
+}
+function scenePicker(c) {
+  if (c.scenes.length <= 1) return showChat(newChat(c, c.scenes[0]).id);
+  const sh = openSheet(`<div class="sheet-title">New chat with ${esc(c.name)}: pick a story</div><div class="sheet-body">${sceneButtons(c, c.scenes)}</div>`);
+  sh.onclick = e => { const b = e.target.closest('[data-k]'); if (b) { closeSheet(true); showChat(newChat(c, c.scenes[+b.dataset.k]).id); } };
+}
+function chatList(c) {
+  const list = chatsOf(c);
+  const sh = openSheet(`<div class="sheet-head"><span style="width:64px"></span><b>Chats with ${esc(c.name.split(' ')[0])}</b><button class="text-btn strong" data-new>New</button></div>
+    <div class="sheet-body">${list.map(ch => { const lm = last(ch.messages); return `<div class="chatrow${ch.id === state.current ? ' on' : ''}"><span data-open="${ch.id}"><b>${esc(ch.title)}</b><small>${ago(lastTs(ch, true))} · ${ch.messages.length} messages${lm ? ' · ' + esc(clip(plain(fill(textOf(lm), c)), 60)) : ''}</small></span><button class="icon-btn" data-del="${ch.id}" aria-label="Delete chat">${ICON.trash}</button></div>`; }).join('')}</div>`);
+  sh.onclick = e => {
+    if (e.target.closest('[data-new]')) { closeSheet(true); scenePicker(c); return; }
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      if (!confirm('Delete this chat? This can\'t be undone.')) return;
+      const wasCurrent = del.dataset.del === state.current;
+      deleteChat(del.dataset.del);
+      closeSheet(true);
+      if (wasCurrent) { const next = activeChat(c); if (next) showChat(next.id); else showHome(); }
+      else chatList(c);
+      return;
+    }
+    const o = e.target.closest('[data-open]');
+    if (o) { closeSheet(true); showChat(o.dataset.open); }
+  };
+}
+
+function showChat(id) {
+  const chat = state.chats[id], c = chat && charById(chat.charId);
+  if (!c) return showHome();
+  if (state.current !== id) {
+    if (state.abort) state.abort.abort();
+    state.lastError = null; state.suggestions = null;
+  }
+  state.current = id;
+  if (c.chatId !== id) { c.chatId = id; saveChars(); }
+  mount(`
+  <div class="bg-wrap"><div class="chat-bg" ${c.avatar ? `style="background-image:url('${c.avatar}')"` : `style="${gradCss(c)}"`}></div></div>
+  <header class="bar"><button class="icon-btn" id="btnBack" aria-label="Back">${ICON.back}</button>
+    <button class="chat-title" id="btnInfo">${avatarHtml(c, 'av36')}<span><b>${esc(c.name)}</b><small id="status">${esc(chat.title !== 'Main' && chat.title !== 'Chat' ? chat.title : c.tagline)}</small></span></button>
+    <button class="icon-btn" id="btnMenu" aria-label="Chat options">${ICON.dots}</button></header>
+  <main class="scroll msgs" id="msgs"></main>
+  <footer class="composer"><div id="extras"></div><div class="input-row">
+    <button class="tool" id="btnIdea" aria-label="Suggest replies">${ICON.idea}</button>
+    <textarea id="input" rows="1" placeholder="Message ${esc(c.name.split(' ')[0])}…" enterkeyhint="send"></textarea>
+    <button class="send" id="btnSend" aria-label="Send">${ICON.send}</button></div></footer>`, 'chat');
+  const input = $('#input'), box = $('#msgs');
+  input.value = state.drafts[id] || '';
+  autoGrow(input);
+  input.oninput = () => { state.drafts[id] = input.value; autoGrow(input); };
+  input.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !isTouch) { e.preventDefault(); send(); } };
+  input.onfocus = () => setTimeout(scrollBottom, 350);
+  $('#btnSend').onmousedown = e => e.preventDefault(); // keep the keyboard up
+  $('#btnSend').onclick = send;
+  $('#btnIdea').onmousedown = e => e.preventDefault();
+  $('#btnIdea').onclick = suggestReplies;
+  $('#btnBack').onclick = showHome;
+  $('#btnInfo').onclick = () => showEdit(c.id, () => showChat(id));
+  $('#btnMenu').onclick = chatMenu;
+  $('#extras').onclick = e => {
+    if (e.target.closest('#btnSteerPill')) return steerSheet();
+    const s = e.target.closest('[data-s]');
+    if (!s) return;
+    if (s.dataset.s !== 'x') { input.value = state.suggestions[+s.dataset.s]; state.drafts[id] = input.value; autoGrow(input); }
+    state.suggestions = null;
+    renderExtras();
+  };
+  box.onclick = e => {
+    const act = e.target.closest('[data-act]');
+    if (act) return act.dataset.act === 'retry' ? send() : swipe(act.dataset.act);
+    const b = e.target.closest('.bubble');
+    if (b && !state.busy && !String(getSelection())) messageActions(+b.closest('.msg').dataset.i);
+  };
+  let t0 = null;
+  box.addEventListener('touchstart', e => {
+    const m = e.target.closest('.msg.bot'), n = curChat() ? curChat().messages.length : 0;
+    t0 = m && +m.dataset.i === n - 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+  }, { passive: true });
+  box.addEventListener('touchend', e => {
+    if (!t0) return;
+    const dx = e.changedTouches[0].clientX - t0.x, dy = e.changedTouches[0].clientY - t0.y;
+    t0 = null;
+    if (Math.abs(dx) > 70 && Math.abs(dy) < 45) swipe(dx < 0 ? 'next' : 'prev');
+  }, { passive: true });
+  renderMessages();
+  renderExtras();
+  setBusyUI(state.busy);
+  scrollBottom();
+}
+
+function msgHtml(m, i, isLast, c) {
+  const t = fill(textOf(m), c);
+  if (m.role === 'user') return `<div class="msg user" data-i="${i}"><div class="bubble">${fmt(t)}</div></div>`;
+  const n = m.swipes.length;
+  let ctrls = '';
+  if (isLast && !state.busy) {
+    ctrls = `<div class="swipes">${n > 1 ? `<button data-act="prev" aria-label="Previous reply" ${m.sw === 0 ? 'disabled' : ''}>‹</button><span>${m.sw + 1}/${n}</span>` : ''}${m.sw < n - 1 ? '<button data-act="next" aria-label="Next reply">›</button>' : !m.greeting ? `<button data-act="next" aria-label="New reply">${ICON.redo}</button>` : ''}</div>`;
+  }
+  return `<div class="msg bot" data-i="${i}">${avatarHtml(c, 'av28')}<div class="col"><div class="name">${esc(c.name)}</div><div class="bubble">${t.trim() ? fmt(t) : TYPING}</div>${ctrls}</div></div>`;
+}
+function renderMessages() {
+  const box = $('#msgs');
+  if (!box) return;
+  const chat = curChat(), c = curChar(), n = chat.messages.length;
+  let html = chat.scenario ? `<div class="scene-note">${esc(fill(chat.scenario, c))}</div>` : '';
+  html += chat.messages.map((m, i) => msgHtml(m, i, i === n - 1, c)).join('') || `<p class="empty">Say hi to ${esc(c.name)}.</p>`;
+  if (state.lastError && n && last(chat.messages).role === 'user' && !state.busy)
+    html += `<div class="retry"><span>${esc(clip(state.lastError, 160))}</span><button data-act="retry">Retry</button></div>`;
+  box.innerHTML = html;
+}
+function renderExtras() {
+  const box = $('#extras'), chat = curChat();
+  if (!box || !chat) return;
+  let h = '';
+  const steer = [chat.length !== 'auto' ? LEN_LABEL[chat.length] + ' replies' : '', chat.note].filter(Boolean).join(' · ');
+  if (steer) h += `<button class="steer-pill" id="btnSteerPill">🎬 ${esc(steer)}</button>`;
+  if (state.suggestions === 'loading') h += `<div class="suggest"><span class="sugg loading">${TYPING}</span></div>`;
+  else if (Array.isArray(state.suggestions)) h += `<div class="suggest">${state.suggestions.map((s, k) => `<button class="sugg" data-s="${k}">${fmt(s)}</button>`).join('')}<button class="sugg x" data-s="x" aria-label="Close suggestions">✕</button></div>`;
+  box.innerHTML = h;
+}
+function setBusyUI(b) {
+  const btn = $('#btnSend'), st = $('#status'), chat = curChat(), c = curChar();
+  if (btn) { btn.innerHTML = b ? ICON.stop : ICON.send; btn.classList.toggle('stop', b); btn.setAttribute('aria-label', b ? 'Stop' : 'Send'); }
+  if (st && chat && c) st.textContent = b ? 'typing…' : (chat.title !== 'Main' && chat.title !== 'Chat' ? chat.title : c.tagline);
+}
+function autoGrow(el) {
+  el.style.height = '44px';
+  el.style.height = Math.min(el.scrollHeight + 2, 140) + 'px';
+}
+
+function messageActions(i) {
+  const chat = curChat(), c = curChar(), m = chat.messages[i];
+  if (!m) return;
+  const isLast = i === chat.messages.length - 1;
+  const items = [
+    ['copy', 'Copy', () => copyText(fill(textOf(m), c))],
+    ['edit', 'Edit', () => textSheet({ title: 'Edit message', value: textOf(m), save: v => { if (!v.trim()) return; setText(m, v.trim()); saveChat(chat.id); renderMessages(); } })],
+  ];
+  if (m.role === 'assistant') items.push(['speaker', 'Read aloud', () => speakText(textOf(m), c)]);
+  if (m.role === 'assistant' && isLast) items.push(['more', 'Continue this reply', continueReply]);
+  if (m.role === 'assistant' && isLast && !m.greeting) items.push(['redo', 'New reply', regenerate]);
+  if (!isLast) items.push(['rewind', 'Rewind to here', () => {
+    if (!confirm('Delete every message after this one?')) return;
+    chat.messages.splice(i + 1);
+    chat.summarizedUpTo = Math.min(chat.summarizedUpTo, chat.messages.length);
+    state.lastError = null; saveChat(chat.id); renderMessages();
+  }]);
+  items.push(['trash', 'Delete message', () => { chat.messages.splice(i, 1); state.lastError = null; saveChat(chat.id); renderMessages(); }, 'danger']);
+  sheetMenu(items);
+}
+function chatMenu() {
+  const chat = curChat(), c = curChar(), n = chatsOf(c).length;
+  sheetMenu([
+    ['steer', 'Steer the story', steerSheet],
+    ['memory', 'Memory & scenario', memorySheet],
+    ['list', `All chats with ${c.name.split(' ')[0]} (${n})`, () => chatList(c)],
+    ['fresh', 'New chat', () => scenePicker(c)],
+    ['person', 'Edit character', () => showEdit(c.id, () => showChat(chat.id))],
+    ['trash', 'Delete this chat', () => {
+      if (!confirm('Delete this chat? This can\'t be undone.')) return;
+      deleteChat(chat.id);
+      const next = activeChat(c);
+      if (next) showChat(next.id); else showHome();
+    }, 'danger'],
+  ], c.name);
+}
+function steerSheet() {
+  const chat = curChat(), c = curChar();
+  let len = chat.length || 'auto';
+  const sh = openSheet(`<div class="sheet-head"><button class="text-btn" data-x>Cancel</button><b>Steer the story</b><button class="text-btn strong" data-ok>Save</button></div>
+  <div class="sheet-body">
+    <div class="field"><span>Reply length</span><div class="seg" id="lenSeg">${Object.keys(LEN_LABEL).map(l => `<button data-l="${l}" class="${len === l ? 'on' : ''}">${LEN_LABEL[l]}</button>`).join('')}</div></div>
+    <div class="field"><span>Director's note <em>a nudge for every reply until you clear it</em></span><textarea id="noteTa" rows="4" placeholder="e.g. ${esc(c.name.split(' ')[0])} gets jealous when {{user}} mentions their ex.">${esc(chat.note || '')}</textarea></div>
+    <div class="chips wrap">${STEER_PRESETS.map((p, k) => `<button class="chip" data-p="${k}">${esc(p[0])}</button>`).join('')}</div>
+    <p class="hint" style="margin-top:4px">Tap an idea to add it. Clear the note to go back to normal.</p>
+  </div>`);
+  sh.classList.add('tall');
+  sh.onclick = e => {
+    const l = e.target.closest('[data-l]');
+    if (l) { len = l.dataset.l; $$('#lenSeg button', sh).forEach(b => b.classList.toggle('on', b === l)); return; }
+    const p = e.target.closest('[data-p]');
+    if (p) { const ta = $('#noteTa', sh); ta.value = (ta.value.trim() ? ta.value.trim() + ' ' : '') + STEER_PRESETS[+p.dataset.p][1]; return; }
+    if (e.target.closest('[data-x]')) return closeSheet();
+    if (e.target.closest('[data-ok]')) {
+      chat.length = len; chat.note = $('#noteTa', sh).value.trim();
+      saveChat(chat.id); closeSheet(); renderExtras();
+      toast(chat.note || len !== 'auto' ? 'Steering saved' : 'Steering cleared');
+    }
+  };
+}
+function memorySheet() {
+  const chat = curChat(), c = curChar();
+  const sh = openSheet(`<div class="sheet-head"><button class="text-btn" data-x>Cancel</button><b>Memory &amp; scenario</b><button class="text-btn strong" data-ok>Save</button></div>
+  <div class="sheet-body">
+    <label class="field"><span>Pinned memories <em>always remembered</em></span><textarea id="m_memory" rows="4" placeholder="Names, your relationship, promises, things ${esc(c.name.split(' ')[0])} must never forget…">${esc(chat.memory)}</textarea></label>
+    <label class="field"><span>Story so far <em>${state.settings.autoMemory ? 'written automatically as the chat grows' : 'auto memory is off in Settings'}</em></span><textarea id="m_summary" rows="6" placeholder="Fills in by itself once the chat gets long. You can edit it.">${esc(chat.summary)}</textarea></label>
+    <label class="field"><span>Scenario for this chat</span><textarea id="m_scenario" rows="3" placeholder="Where and how this story is set.">${esc(chat.scenario)}</textarea></label>
+  </div>`);
+  sh.classList.add('tall');
+  $('[data-x]', sh).onclick = () => closeSheet();
+  $('[data-ok]', sh).onclick = () => {
+    chat.memory = $('#m_memory', sh).value.trim();
+    chat.summary = $('#m_summary', sh).value.trim();
+    chat.scenario = $('#m_scenario', sh).value.trim();
+    saveChat(chat.id); closeSheet(); renderMessages(); toast('Memory saved');
+  };
+}
+
+function voiceOptions(sel, cur) {
+  sel.dataset.fill = cur;
+  const opts = [['auto:f', 'Automatic (female)'], ['auto:m', 'Automatic (male)'], ['auto:', 'Automatic (any)']].concat(englishVoices().map(v => ['name:' + v.name, v.name]));
+  sel.innerHTML = opts.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join('');
+  sel.value = cur;
+  if (sel.value !== cur) sel.value = 'auto:';
+}
+function showEdit(id, back) {
+  const orig = id && charById(id);
+  const d = orig ? clone(orig) : normalizeChar({ name: '', emoji: '', colors: hues({ name: String(Math.random()) }) });
+  mount(`
+  <header class="bar"><button class="text-btn" id="btnCancel">Cancel</button><h2>${orig ? 'Edit character' : 'New character'}</h2><button class="text-btn strong" id="btnSave">Save</button></header>
+  <main class="scroll form">
+    <div class="avatar-pick"><button class="avatar-btn" id="btnAvatar"><span id="avPrev">${avatarHtml(d, 'av96')}</span><span>${d.avatar ? 'Change photo' : 'Add photo'}</span></button>${d.avatar ? '<button class="text-btn" id="btnNoPhoto">Remove photo</button>' : ''}</div>
+    <div class="inline2"><label class="field grow"><span>Name</span><input id="f_name" maxlength="60" placeholder="e.g. Mara" value="${esc(d.name)}"></label><label class="field emo-f"><span>Emoji</span><input id="f_emoji" maxlength="8" placeholder="✨" value="${esc(d.emoji)}"></label></div>
+    <label class="field"><span>Tagline <em>shown in your list</em></span><input id="f_tagline" maxlength="90" placeholder="e.g. Your flirty bartender neighbor" value="${esc(d.tagline)}"></label>
+    <label class="field"><span>Tags <em>comma separated</em></span><input id="f_tags" placeholder="Female, Fantasy, Dominant" value="${esc(d.tags.join(', '))}"></label>
+    <label class="field"><span>Personality, looks &amp; background</span><textarea id="f_personality" rows="8" placeholder="Who they are, their age (18+), how they look, what they want, their flaws, and how they act when things get intimate.">${esc(d.personality)}</textarea></label>
+    <label class="field"><span>How they talk <em>voice, habits, quirks</em></span><textarea id="f_style" rows="3" placeholder="e.g. Short sentences, dry sarcasm, swears when nervous, calls {{user}} 'trouble'.">${esc(d.style)}</textarea></label>
+    <div class="section">Stories <em>each one starts a chat differently</em></div>
+    <div id="scenes"></div>
+    <button class="btn" id="btnAddScene" type="button">+ Add another story</button>
+    <details class="field"${d.examples ? ' open' : ''}><summary>Example dialogue <em>helps the AI nail their voice</em></summary><textarea id="f_examples" rows="5" placeholder="{{user}}: Hey.&#10;{{char}}: *doesn't look up from her book* You're late. Again.">${esc(d.examples)}</textarea></details>
+    <details class="field"><summary>Voice &amp; model</summary>
+      <div class="field"><span>Read-aloud voice</span><select id="f_voice"></select></div>
+      <div class="field"><span>Voice pitch</span><div class="range-row"><input type="range" id="f_pitch" min="0.5" max="1.5" step="0.05" value="${+d.voice.pitch || 1}"><output id="o_pitch">${(+d.voice.pitch || 1).toFixed(2)}</output></div></div>
+      <button class="btn" id="btnTestVoice" type="button">${ICON.speaker.replace('<svg', '<svg width="18" height="18"')} Test voice</button>
+      <label class="field"><span>AI model for this character <em>optional</em></span><input id="f_model" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Uses your default model" value="${esc(d.model)}"></label>
+    </details>
+    <p class="hint">Write {{user}} and {{char}} anywhere and they turn into your name and theirs. Characters must be adults.</p>
+    ${orig ? `<button class="btn" id="btnExportCard">${ICON.share.replace('<svg', '<svg width="18" height="18"')} Export as character card</button><button class="btn danger" id="btnDelete">Delete character</button>` : ''}
+  </main>`, 'edit');
+  const drawScenes = () => {
+    $('#scenes').innerHTML = d.scenes.map((s, k) => `<div class="scene-edit"><div class="scene-edit-head"><input class="sc-title" maxlength="50" value="${esc(s.title)}" placeholder="Story name"><button class="icon-btn" type="button" data-rm="${k}" aria-label="Remove story" ${d.scenes.length < 2 ? 'hidden' : ''}>${ICON.trash}</button></div>
+      <textarea class="sc-scenario" rows="3" placeholder="Scenario: where and how this story starts.">${esc(s.scenario)}</textarea>
+      <textarea class="sc-greeting" rows="4" placeholder="Their first message. Put actions in *asterisks*.">${esc(s.greeting)}</textarea></div>`).join('');
+  };
+  const readScenes = () => { d.scenes = $$('.scene-edit').map(el => ({ title: $('.sc-title', el).value.trim() || 'Story', scenario: $('.sc-scenario', el).value.trim(), greeting: $('.sc-greeting', el).value.trim() })); };
+  drawScenes();
+  $('#btnAddScene').onclick = () => { readScenes(); d.scenes.push({ title: `Story ${d.scenes.length + 1}`, scenario: '', greeting: '' }); drawScenes(); };
+  $('#scenes').onclick = e => { const b = e.target.closest('[data-rm]'); if (b) { readScenes(); d.scenes.splice(+b.dataset.rm, 1); drawScenes(); } };
+  const sel = $('#f_voice');
+  voiceOptions(sel, d.voice.name ? 'name:' + d.voice.name : 'auto:' + (d.voice.gender || ''));
+  $('#f_pitch').oninput = e => { $('#o_pitch').textContent = (+e.target.value).toFixed(2); };
+  const readVoice = () => { const v = sel.value; d.voice = { ...d.voice, pitch: +$('#f_pitch').value, name: v.startsWith('name:') ? v.slice(5) : '', gender: v.startsWith('auto:') ? v.slice(5) : d.voice.gender || '' }; };
+  $('#btnTestVoice').onclick = () => {
+    readVoice(); readScenes();
+    const g = d.scenes.map(s => s.greeting).find(Boolean);
+    speakText(g || `"Hi, I'm ${$('#f_name').value || 'your character'}."`, { ...d, name: $('#f_name').value || 'them' });
+  };
+  $('#btnCancel').onclick = back;
+  $('#btnAvatar').onclick = () => pickFile('image/*', async f => {
+    try { d.avatar = await imageToAvatar(f); $('#avPrev').innerHTML = avatarHtml(d, 'av96'); }
+    catch (e) { toast(e.message, true); }
+  });
+  if ($('#btnNoPhoto')) $('#btnNoPhoto').onclick = e => { d.avatar = ''; $('#avPrev').innerHTML = avatarHtml(d, 'av96'); e.target.remove(); };
+  $('#btnSave').onclick = () => {
+    const name = $('#f_name').value.trim();
+    if (!name) return toast('Give them a name first', true);
+    const v = k => $('#f_' + k).value.trim();
+    readScenes(); readVoice();
+    Object.assign(d, { name, emoji: v('emoji'), tagline: v('tagline'), personality: v('personality'), style: v('style'), examples: v('examples'), model: v('model'),
+      tags: v('tags').split(',').map(t => t.trim()).filter(Boolean) });
+    if (orig) {
+      state.chars[state.chars.findIndex(x => x.id === id)] = d;
+      // chats that haven't really started yet pick up the edited opening
+      for (const ch of chatsOf(d)) {
+        const scene = d.scenes.find(s => s.title === ch.title);
+        if (scene && ch.messages.every(m => m.greeting)) {
+          ch.scenario = scene.scenario;
+          ch.messages = scene.greeting ? [{ id: uid(), role: 'assistant', swipes: [scene.greeting], sw: 0, ts: Date.now(), greeting: true }] : [];
+          saveChat(ch.id);
+        }
+      }
+      saveChars();
+      back();
+    } else {
+      d.id = uid(); d.created = Date.now();
+      state.chars.unshift(d);
+      saveChars();
+      showChat(newChat(d, d.scenes[0]).id);
+    }
+  };
+  if (orig) {
+    $('#btnExportCard').onclick = () => shareFile(JSON.stringify(toCard(orig), null, 2), orig.name.replace(/[^\w-]+/g, '_') + '.json', 'application/json');
+    $('#btnDelete').onclick = () => {
+      if (!confirm(`Delete ${orig.name} and every chat with them? This can't be undone.`)) return;
+      for (const ch of chatsOf(orig)) { delete state.chats[ch.id]; saveChat(ch.id); }
+      state.chars = state.chars.filter(x => x.id !== id);
+      saveChars();
+      showHome();
+    };
+  }
+}
+
+function showSettings(back) {
+  const s = state.settings;
+  back = back || showHome;
+  const range = (k, label, min, max, step, hint) => `<div class="field"><span>${label}${hint ? ` <em>${hint}</em>` : ''}</span><div class="range-row"><input type="range" id="s_${k}" min="${min}" max="${max}" step="${step}"><output id="o_${k}"></output></div></div>`;
+  const toggle = (k, label) => `<label class="toggle-row"><span>${label}</span><input type="checkbox" class="switch" id="s_${k}"></label>`;
+  mount(`
+  <header class="bar"><button class="icon-btn" id="btnBack" aria-label="Back">${ICON.back}</button><h2>Settings</h2><span style="width:42px"></span></header>
+  <main class="scroll form">
+    <div class="section">AI connection</div>
+    <label class="field"><span>Service</span><select id="s_provider"><option value="openrouter">OpenRouter (recommended)</option><option value="custom">Other (OpenAI-compatible server)</option></select></label>
+    <label class="field" id="rowBase"><span>Server URL</span><input id="s_baseUrl" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://your-server/v1"></label>
+    <div class="field"><span>API key</span><div class="inline"><input id="s_apiKey" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn" id="btnShowKey" type="button">Show</button></div></div>
+    <p class="hint" id="keyHint"></p>
+    <div class="field"><span>Model</span><div class="inline"><input id="s_model" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Tap Browse to pick one"><button class="btn" id="btnModels" type="button">Browse</button></div></div>
+    <button class="btn" id="btnTest">Test connection</button>
+
+    <div class="section">You</div>
+    <label class="field"><span>Your name</span><input id="s_userName" maxlength="40"></label>
+    <label class="field"><span>About you <em>optional</em></span><textarea id="s_userPersona" rows="3" placeholder="How characters should see you: looks, personality, anything they should know."></textarea></label>
+
+    <div class="section">Replies</div>
+    ${range('temperature', 'Creativity', 0, 1.6, 0.05)}
+    ${range('maxTokens', 'Max reply length', 100, 1500, 50, 'tokens')}
+    ${range('contextTokens', 'Chat memory', 2000, 64000, 1000, 'how much history is sent')}
+    ${toggle('stream', "Show replies as they're written")}
+    ${toggle('autoMemory', 'Auto memory: summarize long chats')}
+    <p class="hint" style="margin-top:2px">Auto memory writes a "story so far" when a chat outgrows the chat memory, so characters don't forget what happened. You can read and edit it under ⋯ → Memory.</p>
+
+    <div class="section">Less repetitive replies</div>
+    ${range('minP', 'Min-P', 0, 0.3, 0.01, 'cuts off weird words; 0.05 is a good start')}
+    ${range('freqPen', 'Repeat penalty', 0, 1, 0.05, 'discourages reusing words')}
+    ${range('presPen', 'Variety push', 0, 1, 0.05, 'nudges toward new topics')}
+    ${range('repPen', 'Repetition penalty (open models)', 1, 1.3, 0.01, '1.00 = off')}
+    <label class="field"><span>Phrases to avoid <em>one per line</em></span><textarea id="s_avoid" rows="6"></textarea></label>
+    <button class="btn" id="btnResetAvoid">Reset phrase list</button>
+
+    <div class="section">Read aloud</div>
+    ${toggle('ttsAuto', 'Read new replies aloud')}
+    ${toggle('ttsActions', 'Also read *actions*')}
+    <p class="hint" style="margin-top:2px">Uses your iPhone's voices. Download better ones under iPhone Settings → Accessibility → Spoken Content → Voices. Each character can have their own voice (Edit character → Voice).</p>
+
+    <div class="section">Display</div>
+    <label class="field"><span>Chat text size</span><select id="s_textSize"><option value="s">Small</option><option value="m">Medium</option><option value="l">Large</option><option value="xl">Extra large</option></select></label>
+
+    <div class="section">Roleplay instructions</div>
+    <label class="field"><span>System prompt <em>sent before every chat</em></span><textarea id="s_systemPrompt" rows="10"></textarea></label>
+    <button class="btn" id="btnResetPrompt">Reset to default</button>
+
+    <div class="section">Privacy</div>
+    <button class="btn" id="btnLock">${s.lockHash ? 'Turn off app lock' : 'Set an app lock PIN'}</button>
+    <p class="hint">With a PIN, Velvet locks after 30 seconds in the background and hides your chats in the app switcher.</p>
+
+    <div class="section">Backup</div>
+    <button class="btn" id="btnExport">Export backup</button>
+    <button class="btn" id="btnImport">Import backup or character card</button>
+    <p class="hint">Your characters and chats live only on this phone. Export a backup now and then so you can't lose them. Backups never include your API key or PIN.</p>
+    <p class="foot">Velvet ${VERSION} · ${LIBRARY.length} built-in characters</p>
+  </main>`, 'settings');
+
+  const outFmt = { temperature: v => (+v).toFixed(2), maxTokens: v => v, contextTokens: v => Math.round(v / 1000) + 'k', minP: v => (+v).toFixed(2), freqPen: v => (+v).toFixed(2), presPen: v => (+v).toFixed(2), repPen: v => (+v === 1 ? 'off' : (+v).toFixed(2)) };
+  const applyProvider = () => {
+    const custom = s.provider === 'custom';
+    $('#rowBase').hidden = !custom;
+    $('#s_apiKey').placeholder = custom ? 'Leave empty if not needed' : 'sk-or-v1-…';
+    $('#keyHint').innerHTML = custom
+      ? 'Any server with an OpenAI-style /chat/completions endpoint works. It must allow requests from this page (CORS) and use https.'
+      : 'Get one at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>. It stays on this phone and is only sent to OpenRouter.';
+  };
+  for (const el of $$('[id^="s_"]')) {
+    const k = el.id.slice(2), out = $('#o_' + k);
+    if (el.type === 'checkbox') el.checked = !!s[k]; else el.value = s[k] ?? '';
+    if (out) out.textContent = outFmt[k](el.value);
+    const ev = el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input';
+    el.addEventListener(ev, () => {
+      s[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : ['apiKey', 'model', 'baseUrl'].includes(k) ? el.value.trim() : el.value;
+      if (out) out.textContent = outFmt[k](el.value);
+      if (k === 'provider') applyProvider();
+      if (k === 'textSize') applyTextSize();
+      saveSettingsSoon();
+    });
+  }
+  applyProvider();
+  $('#btnBack').onclick = () => { saveSettings(); back(); };
+  $('#btnShowKey').onclick = e => { const f = $('#s_apiKey'), show = f.type === 'password'; f.type = show ? 'text' : 'password'; e.target.textContent = show ? 'Hide' : 'Show'; };
+  $('#btnModels').onclick = browseModels;
+  $('#btnTest').onclick = e => testConnection(e.target);
+  $('#btnResetPrompt').onclick = () => { if (!confirm('Put the default roleplay instructions back?')) return; s.systemPrompt = DEFAULT_SYSTEM; $('#s_systemPrompt').value = DEFAULT_SYSTEM; saveSettings(); };
+  $('#btnResetAvoid').onclick = () => { s.avoid = DEFAULT_AVOID; $('#s_avoid').value = DEFAULT_AVOID; saveSettings(); };
+  $('#btnLock').onclick = () => {
+    if (s.lockHash) { if (!confirm('Turn off the app lock?')) return; s.lockHash = ''; saveSettings(); $('#btnLock').textContent = 'Set an app lock PIN'; toast('App lock off'); }
+    else showLock('set', () => { $('#btnLock').textContent = 'Turn off app lock'; });
+  };
+  $('#btnExport').onclick = exportBackup;
+  $('#btnImport').onclick = () => pickFile('.png,.json,image/png,application/json', importFile);
+}
+
+async function testConnection(btn) {
+  const need = configured();
+  if (need) return toast(need, true);
+  btn.disabled = true; btn.textContent = 'Testing…';
+  try {
+    let out = '';
+    await callModel([{ role: 'user', content: 'Reply with the single word: ready' }], d => { out += d; }, undefined, { stream: false, max_tokens: 20, plain: true });
+    toast('Connected ✓' + (out.trim() ? '  "' + clip(out.trim(), 40) + '"' : ''));
+  } catch (e) { toast(niceError(e), true); }
+  finally { btn.disabled = false; btn.textContent = 'Test connection'; }
+}
+
+async function browseModels() {
+  const s = state.settings;
+  if (!base()) return toast('Add the server URL first', true);
+  const sh = openSheet(`<div class="sheet-head"><span style="width:64px"></span><b>Choose a model</b><button class="text-btn" data-x>Close</button></div>
+    <input class="sheet-search" placeholder="Search, e.g. llama, mistral, free" autocapitalize="off" autocorrect="off" spellcheck="false"><div class="model-list"><p class="empty">Loading models…</p></div>`);
+  sh.classList.add('tall');
+  $('[data-x]', sh).onclick = () => closeSheet();
+  const list = $('.model-list', sh), q = $('.sheet-search', sh);
+  let models;
+  try {
+    const res = await fetch(base() + '/models', { headers: s.apiKey ? { Authorization: 'Bearer ' + s.apiKey } : {} });
+    if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+    const j = await res.json();
+    models = (j.data || j.models || []).map(m => ({
+      id: m.id, name: m.name || m.id, ctx: m.context_length,
+      pin: m.pricing ? +m.pricing.prompt * 1e6 : NaN, pout: m.pricing ? +m.pricing.completion * 1e6 : NaN,
+    })).sort((a, b) => a.name.localeCompare(b.name));
+  } catch (e) {
+    list.innerHTML = `<p class="empty">Couldn't load the model list (${esc(niceError(e))}). You can type a model name into the Model box instead.</p>`;
+    return;
+  }
+  const p = n => (n < 0.1 ? n.toFixed(3) : n < 10 ? n.toFixed(2) : n.toFixed(0));
+  const price = m => (isNaN(m.pin) || m.pin < 0 ? '' : m.pin === 0 && m.pout === 0 ? ' · free' : ` · $${p(m.pin)} in / $${p(m.pout)} out per 1M`);
+  const draw = () => {
+    const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits = models.filter(m => words.every(w => (m.id + ' ' + m.name).toLowerCase().includes(w))).slice(0, 250);
+    list.innerHTML = hits.map(m => `<button class="model${m.id === s.model ? ' on' : ''}" data-id="${esc(m.id)}"><b>${esc(m.name)}</b><small>${esc(m.id)}${m.ctx ? ' · ' + Math.round(m.ctx / 1000) + 'k memory' : ''}${price(m)}</small></button>`).join('')
+      || '<p class="empty">No matches.</p>';
+  };
+  q.oninput = draw;
+  draw();
+  list.onclick = e => {
+    const b = e.target.closest('[data-id]');
+    if (!b) return;
+    s.model = b.dataset.id;
+    saveSettings();
+    if ($('#s_model')) $('#s_model').value = s.model;
+    closeSheet();
+    toast('Model set');
+  };
+}
+
+/* ---------- sheets ---------- */
+function openSheet(inner) {
+  closeSheet(true);
+  const back = document.createElement('div'), sh = document.createElement('div');
+  back.className = 'sheet-back';
+  sh.className = 'sheet';
+  sh.innerHTML = '<div class="grab"></div>' + inner;
+  app.append(back, sh);
+  requestAnimationFrame(() => requestAnimationFrame(() => { back.classList.add('open'); sh.classList.add('open'); }));
+  back.onclick = () => closeSheet();
+  state.sheet = { back, sh };
+  return sh;
+}
+function closeSheet(instant) {
+  const s = state.sheet;
+  if (!s) return;
+  state.sheet = null;
+  if (instant) { s.back.remove(); s.sh.remove(); return; }
+  s.back.classList.remove('open'); s.sh.classList.remove('open');
+  setTimeout(() => { s.back.remove(); s.sh.remove(); }, 280);
+}
+function sheetMenu(items, title) {
+  const sh = openSheet((title ? `<div class="sheet-title">${esc(title)}</div>` : '') +
+    items.map((it, k) => `<button class="sheet-item ${it[3] || ''}" data-k="${k}">${ICON[it[0]] || ''}<span>${esc(it[1])}</span></button>`).join(''));
+  sh.onclick = e => {
+    const b = e.target.closest('[data-k]');
+    if (!b) return;
+    closeSheet(true);
+    items[+b.dataset.k][2]();
+  };
+}
+function textSheet({ title, value, placeholder, save }) {
+  const sh = openSheet(`<div class="sheet-head"><button class="text-btn" data-x>Cancel</button><b>${esc(title)}</b><button class="text-btn strong" data-ok>Save</button></div>
+    <textarea class="sheet-text" placeholder="${esc(placeholder || '')}">${esc(value || '')}</textarea>`);
+  sh.classList.add('tall');
+  $('[data-x]', sh).onclick = () => closeSheet();
+  $('[data-ok]', sh).onclick = () => { save($('textarea', sh).value); closeSheet(); };
+}
+
+/* ---------- import / export ---------- */
+async function imageToAvatar(blob, size = 400) {
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("Couldn't read that image")); i.src = url; });
+    const w = img.naturalWidth, h = img.naturalHeight, s = Math.min(w, h);
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = size;
+    // square crop, biased toward the top of tall portraits where faces usually are
+    cv.getContext('2d').drawImage(img, (w - s) / 2, h > w ? (h - s) * 0.15 : 0, s, s, 0, 0, size, size);
+    return cv.toDataURL('image/jpeg', 0.86);
+  } finally { URL.revokeObjectURL(url); }
+}
+function pngText(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf), lat = new TextDecoder('latin1'), out = {};
+  let p = 8;
+  while (p + 12 <= u8.length) {
+    const len = dv.getUint32(p), type = lat.decode(u8.subarray(p + 4, p + 8)), d = u8.subarray(p + 8, p + 8 + len);
+    const z = d.indexOf(0);
+    if (type === 'tEXt' && z > 0) out[lat.decode(d.subarray(0, z)).toLowerCase()] = lat.decode(d.subarray(z + 1));
+    if (type === 'iTXt' && z > 0 && d[z + 1] === 0) {
+      let q = d.indexOf(0, z + 3) + 1;
+      q = d.indexOf(0, q) + 1;
+      out[lat.decode(d.subarray(0, z)).toLowerCase()] = new TextDecoder().decode(d.subarray(q));
+    }
+    if (type === 'IEND') break;
+    p += 12 + len;
+  }
+  return out;
+}
+function decodeCardText(s) {
+  s = s.trim();
+  if (s.startsWith('{')) return s;
+  return new TextDecoder().decode(Uint8Array.from(atob(s), ch => ch.charCodeAt(0)));
+}
+function cardToChar(card) {
+  const d = card.data && typeof card.data === 'object' ? card.data : card;
+  const vx = (d.extensions && d.extensions.velvet) || {};
+  const desc = d.description ?? d.char_persona ?? '', pers = d.personality ?? '';
+  return normalizeChar({
+    id: uid(), created: Date.now(), avatar: '',
+    name: String(d.name || d.char_name || 'Unnamed').trim(),
+    tagline: vx.tagline || '', bio: vx.bio || '', emoji: vx.emoji || '', colors: vx.colors, style: vx.style || '', voice: vx.voice,
+    tags: Array.isArray(d.tags) ? d.tags.filter(t => typeof t === 'string') : [],
+    personality: [desc, pers && 'Personality: ' + pers].filter(x => x && String(x).trim()).join('\n\n'),
+    scenes: Array.isArray(vx.scenes) ? vx.scenes : undefined,
+    scenario: d.scenario ?? d.world_scenario ?? '',
+    greeting: d.first_mes ?? d.char_greeting ?? '',
+    altGreetings: Array.isArray(d.alternate_greetings) ? d.alternate_greetings.filter(g => typeof g === 'string' && g.trim()) : [],
+    examples: String(d.mes_example ?? d.example_dialogue ?? '').replace(/<START>/gi, '').trim(),
+  });
+}
+function toCard(c) {
+  const first = c.scenes[0] || {};
+  return {
+    spec: 'chara_card_v2', spec_version: '2.0',
+    data: {
+      name: c.name, description: c.personality, personality: '', scenario: first.scenario || '', first_mes: first.greeting || '',
+      mes_example: c.examples || '', alternate_greetings: c.scenes.slice(1).map(s => s.greeting).filter(Boolean),
+      creator_notes: c.tagline || '', system_prompt: '', post_history_instructions: '', tags: c.tags, creator: '', character_version: '',
+      extensions: { velvet: { tagline: c.tagline, bio: c.bio, emoji: c.emoji, colors: c.colors, style: c.style, scenes: c.scenes, voice: c.voice } },
+    },
+  };
+}
+async function importFile(file) {
+  try {
+    const buf = await file.arrayBuffer(), u8 = new Uint8Array(buf);
+    if (u8[0] === 0x89 && u8[1] === 0x50 && u8[2] === 0x4e) {
+      const tx = pngText(buf), raw = tx.ccv3 || tx.chara;
+      if (!raw) throw new Error('this image has no character card inside it.');
+      const c = cardToChar(JSON.parse(decodeCardText(raw)));
+      c.avatar = await imageToAvatar(new Blob([buf], { type: 'image/png' }));
+      return addImported(c);
+    }
+    const j = JSON.parse(new TextDecoder().decode(u8));
+    if (j.app === 'velvet') return restoreBackup(j);
+    if (j.spec || j.data || j.name || j.char_name) return addImported(cardToChar(j));
+    throw new Error("that file isn't a character card or a Velvet backup.");
+  } catch (e) {
+    toast('Import failed: ' + (e instanceof SyntaxError ? "couldn't read the file." : e.message), true);
+  }
+}
+function addImported(c) {
+  state.chars.unshift(c);
+  saveChars();
+  toast(c.name + ' added');
+  showChat(newChat(c, c.scenes[0]).id);
+}
+async function restoreBackup(j) {
+  const chars = (Array.isArray(j.characters) ? j.characters : []).map(normalizeChar);
+  if (!confirm(`Restore this backup (${chars.length} characters)? Characters you have now are kept; matching ones are replaced by the backup's version.`)) return;
+  const ids = new Set(chars.map(c => c.id));
+  state.chars = [...chars, ...state.chars.filter(c => !ids.has(c.id))];
+  for (const [key, ch] of Object.entries(j.chats || {})) { const m = migrateChat(key, ch); state.chats[m.id] = m; await saveChat(m.id); }
+  for (const c of state.chars) if (!c.chatId && state.chats[c.id]) c.chatId = c.id;
+  state.settings = { ...DEFAULT_SETTINGS, ...(j.settings || {}), apiKey: state.settings.apiKey, lockHash: state.settings.lockHash };
+  applyTextSize();
+  await saveChars();
+  await saveSettings();
+  toast('Backup restored');
+  showHome();
+}
+function exportBackup() {
+  const data = { app: 'velvet', v: 2, exported: new Date().toISOString(), settings: { ...state.settings, apiKey: '', lockHash: '' }, characters: state.chars, chats: state.chats };
+  return shareFile(JSON.stringify(data), `velvet-backup-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
+}
+
+/* ---------- keyboard-aware height (iOS) ---------- */
+const vv = window.visualViewport;
+function fitViewport() {
+  if (!vv) return;
+  document.documentElement.style.setProperty('--app-h', vv.height + 'px');
+  document.documentElement.classList.toggle('kb', vv.height < window.innerHeight - 120);
+  if (window.scrollY) window.scrollTo(0, 0);
+}
+if (vv) { vv.addEventListener('resize', fitViewport); vv.addEventListener('scroll', fitViewport); fitViewport(); }
+
+/* ---------- start ---------- */
+async function init() {
+  try {
+    state.settings = { ...DEFAULT_SETTINGS, ...((await DB.get('settings')) || {}) };
+    state.chars = ((await DB.get('characters')) || []).map(normalizeChar);
+    for (const k of await DB.keys()) {
+      if (!String(k).startsWith('chat:')) continue;
+      const ch = migrateChat(k.slice(5), await DB.get(k));
+      state.chats[ch.id] = ch;
+    }
+    for (const c of state.chars) if (!c.chatId && state.chats[c.id]) c.chatId = c.id;
+  } catch (e) { storageErr(e); }
+  applyTextSize();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  if (state.settings.lockHash) showLock('unlock');
+  if (state.chars.length) showHome(); else showDiscover();
+  if (!state.settings.onboarded) welcome();
+}
+function welcome() {
+  const sh = openSheet(`<div class="prof"><div class="logo" style="margin:0">Velvet</div><p class="tagline">Private AI characters, only on your phone.</p></div>
+    <label class="field"><span>What should characters call you?</span><input id="w_name" maxlength="40" placeholder="Your name" autocomplete="given-name"></label>
+    <button class="btn primary" data-go>Continue</button>
+    <p class="hint" style="margin-top:4px">You can change it, and tell characters more about yourself, in Settings.</p>`);
+  const finish = () => {
+    state.settings.userName = $('#w_name', sh).value.trim() || state.settings.userName || 'You';
+    state.settings.onboarded = true;
+    saveSettings();
+    closeSheet();
+    (state.view === 'home' ? showHome : showDiscover)();
+  };
+  $('[data-go]', sh).onclick = finish;
+  $('#w_name', sh).onkeydown = e => { if (e.key === 'Enter') finish(); };
+  state.sheet.back.onclick = finish;
+}
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+init();
+</script>
+</body>
+</html>
