@@ -156,6 +156,52 @@ button.pick:active{background:var(--panel2)}
 #lightbox .lb-prev,#lightbox .lb-next{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:70px;font-size:34px;color:#fff;background:rgba(0,0,0,.35);border-radius:12px}
 #lightbox .lb-prev{left:4px}#lightbox .lb-next{right:4px}
 
+/* gentle motion: messages float in, screens fade in */
+.msg.enter{animation:msgIn .36s cubic-bezier(.2,.8,.2,1) both}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.msg.user.enter{transform-origin:100% 100%}.msg.bot.enter{transform-origin:0 100%}
+.swipes{animation:fadeIn .4s ease both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.view-in{animation:viewIn .26s cubic-bezier(.2,.8,.2,1) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg .txt-tag{font-size:11px;color:var(--accent);margin-left:6px;font-weight:600}
+.unread{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:inline-grid;place-items:center;font-style:normal;margin-left:6px}
+.row.new .row-sub{color:var(--text);font-weight:600}
+.love-btn{font-size:20px}
+
+/* relationship + diary */
+.lovebar{height:10px;border-radius:999px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+.lovebar i{display:block;height:100%;background:var(--grad);border-radius:999px}
+.levels{display:grid;gap:6px}
+.levels div{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:var(--panel2);opacity:.45}
+.levels div.on{opacity:1}
+.levels span{font-size:20px}.levels b{flex:1;font-weight:600}.levels small{color:var(--dim)}
+.diary{padding:14px 16px;border-radius:14px;background:#f5ecdc;color:#2c2118;margin-bottom:10px;font-family:Georgia,'Times New Roman',serif;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.diary small{color:#8b7255;font-style:italic;font-size:13px}
+.diary p{margin:6px 0 0;line-height:1.6;font-size:15px}
+.diary em{color:#6b5640}
+
+/* voice calls */
+#call{position:fixed;inset:0;z-index:220;background:#0b0810;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(var(--safe-t) + 48px) 22px calc(var(--safe-b) + 34px);color:#fff;overflow:hidden;animation:viewIn .3s ease both}
+#call .call-bg{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(55px) saturate(1.3);opacity:.5}
+#call>*{position:relative}
+.call-top{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.call-av{width:150px;height:150px;font-size:56px}
+.call-av.talking{animation:pulse 1.5s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(226,71,127,.6)}70%{box-shadow:0 0 0 28px rgba(226,71,127,0)}100%{box-shadow:0 0 0 0 rgba(226,71,127,0)}}
+.call-name{font-size:26px;font-weight:700;margin-top:6px}
+.call-status{color:rgba(255,255,255,.72);font-size:15px}
+.call-sub{max-width:520px;text-align:center;font-size:18px;line-height:1.45;min-height:5em;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.call-sub small{display:block;color:rgba(255,255,255,.6);font-size:15px;margin-top:8px}
+.call-type{display:flex;gap:8px;width:100%;max-width:520px;margin-bottom:18px}
+.call-type input{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}
+.call-btns{display:flex;gap:30px;align-items:center}
+.call-btn{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.16);color:#fff}
+.call-btn.on{background:#fff;color:#111}
+.call-btn.end{background:#ff3b4e}
+.call-btn svg{width:28px;height:28px}
+@media (prefers-reduced-motion:reduce){.msg.enter,.view-in,.swipes,.call-av.talking,#call{animation:none}}
+
 /* chat */
 .bg-wrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
 .chat-bg{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(44px) saturate(1.2);opacity:.22}
@@ -303,7 +349,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <script src="characters.js"></script>
 <script>
 'use strict';
-const VERSION = '2.3';
+const VERSION = '2.4';
 const OR_URL = 'https://openrouter.ai/api/v1';
 const LIBRARY = Array.isArray(window.VELVET_LIBRARY) ? window.VELVET_LIBRARY : [];
 const app = document.getElementById('app');
@@ -349,10 +395,16 @@ const ICON = {
   group: svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M16 14.2a5.5 5.5 0 0 1 6 5.8"/>'),
   camera: svg('<path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/>'),
   image: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'),
+  phone: svg('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>'),
+  mic: svg('<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/>'),
+  book: svg('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>'),
+  link: svg('<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>'),
+  spark: svg('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/>'),
 };
 
 /* ---------- defaults ---------- */
-const DEFAULT_SYSTEM = `You are {{char}}, writing {{char}}'s next reply in a private, uncensored roleplay with {{user}}. This is collaborative fiction between consenting adults, and every character is an adult (18+).
+// the first version's instructions, kept so saved settings that still use them can be upgraded
+const OLD_SYSTEM_1 = `You are {{char}}, writing {{char}}'s next reply in a private, uncensored roleplay with {{user}}. This is collaborative fiction between consenting adults, and every character is an adult (18+).
 
 Be a person, not an assistant:
 - {{char}}'s personality, voice, humor, flaws and moods show in every line. They have their own wants and opinions; they tease, push back, get distracted, change their mind and surprise {{user}}.
@@ -365,16 +417,29 @@ Be a person, not an assistant:
 
 Intimate scenes: follow {{user}}'s lead and build tension instead of rushing. {{char}} stays fully in character the whole time: a shy character stays shy, a bossy one stays bossy, a funny one still jokes. When it gets explicit, be explicit: direct language, every sense, real dialogue, and specific reactions to each touch and word. Check in the way {{char}} naturally would.`;
 
-const DEFAULT_AVOID = ['shivers down the spine', 'barely above a whisper', 'a mix of', 'eyes sparkling with mischief', 'ministrations', 'a testament to', 'the air thick with', 'maybe, just maybe', "a breath they didn't know they were holding", 'padded over', 'pupils blown', 'a dance as old as time', 'jolt of electricity', 'waves of pleasure', 'smirks', 'half-lidded eyes', 'what feels like an eternity', 'voice husky with desire', 'the world fades away', "can't help but"].join('\n');
+const DEFAULT_SYSTEM = `You are {{char}} in a private roleplay chat with {{user}}. This is fiction between consenting adults (every character is 18 or older), and explicit sexual content is welcome whenever {{user}} leads there.
+
+How to reply:
+- Talk the way {{char}} really would: natural and casual, in their own voice, with contractions and everyday words. Mostly dialogue in quotes, with short *actions* in asterisks.
+- Let their personality, mood and opinions come through. Their quirks show now and then, not in every line.
+- React to what {{user}} just said or did, then keep things moving: ask something, tease, decide, or make a move.
+- Keep replies about as long as {{user}}'s message, usually one to three short paragraphs. Go longer only for big moments.
+- Never write {{user}}'s words, thoughts or actions, and don't repeat things you've already said.
+- Skip purple prose and clichés. Simple, specific and sincere beats fancy.
+
+When things get intimate, follow {{user}}'s lead and stay in character. Be direct and explicit when the moment calls for it, say what {{char}} feels and does, and keep talking to {{user}} the way {{char}} would.`;
+const DEFAULT_AVOID = ['shivers down the spine', 'barely above a whisper', 'a mix of', 'ministrations', 'a testament to', 'the air thick with', 'maybe, just maybe', "a breath they didn't know they were holding", 'pupils blown', 'eyes sparkling with mischief'].join('\n');
+const OLD_AVOID_1 = ['shivers down the spine', 'barely above a whisper', 'a mix of', 'eyes sparkling with mischief', 'ministrations', 'a testament to', 'the air thick with', 'maybe, just maybe', "a breath they didn't know they were holding", 'padded over', 'pupils blown', 'a dance as old as time', 'jolt of electricity', 'waves of pleasure', 'smirks', 'half-lidded eyes', 'what feels like an eternity', 'voice husky with desire', 'the world fades away', "can't help but"].join('\n');
 
 const DEFAULT_SETTINGS = {
   provider: 'openrouter', baseUrl: '', apiKey: '', model: 'deepseek/deepseek-v4.1-flash-1017',
-  temperature: 1, maxTokens: 600, contextTokens: 16000, stream: true,
-  minP: 0.05, freqPen: 0.3, presPen: 0.2, repPen: 1,
+  temperature: 0.9, maxTokens: 600, contextTokens: 16000, stream: true,
+  minP: 0, freqPen: 0, presPen: 0, repPen: 1,
   avoid: DEFAULT_AVOID, autoMemory: true,
   userName: 'You', userPersona: '', systemPrompt: DEFAULT_SYSTEM,
   textSize: 'm', ttsAuto: false, ttsActions: false, lockHash: '',
   imageModel: 'black-forest-labs/flux-3-image-klein', imageStyle: 'match',
+  backupModel: 'z-ai/glm-5.3-flash', autoRetry: true, textFirst: '6', autoPics: true, typeSpeed: 'natural', lastSeen: 0,
 };
 const LENGTHS = { short: 'keep it short: one brief paragraph or a few lines', medium: 'about two or three paragraphs', long: 'a long, richly detailed reply of four or more paragraphs' };
 const LEN_LABEL = { auto: 'Auto', short: 'Short', medium: 'Medium', long: 'Long' };
@@ -428,6 +493,7 @@ const state = {
   settings: { ...DEFAULT_SETTINGS }, chars: [], chats: {}, drafts: {}, view: '', current: null,
   busy: false, abort: null, lastError: null, sheet: null, suggestions: null, filter: 'All', query: '',
   summarizing: new Set(), hiddenAt: 0, ttsPrimed: false, libImages: {}, portraitRun: false,
+  seen: new Set(), call: null, stopRequested: false, textingNow: false,
 };
 
 /* ---------- helpers ---------- */
@@ -812,23 +878,7 @@ async function scenePicture() {
   if (!ready(() => showChat(chat.id))) return;
   const lastBot = [...chat.messages].reverse().find(m => m.role === 'assistant' && !m.image && textOf(m));
   const sp = g.group ? (lastBot && lastBot.speaker && charById(lastBot.speaker)) || membersOf(g)[0] : g;
-  if (!sp) return;
-  const m = { id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now(), image: 'pending' };
-  if (g.group) m.speaker = sp.id;
-  chat.messages.push(m);
-  state.busy = true;
-  renderMessages(); setBusyUI(true, sp); scrollBottom();
-  try {
-    m.image = await whileAwake(async () => shrinkImage(await makeImage(scenePrompt(sp, chat, lastBot), '3:4'), 768));
-    m.swipes = ['*sends a picture*'];
-  } catch (e) {
-    chat.messages.splice(chat.messages.indexOf(m), 1);
-    toast(niceError(e), true);
-  } finally {
-    state.busy = false;
-    saveChat(chat.id);
-    if (state.view === 'chat' && state.current === chat.id) { renderMessages(); setBusyUI(false); scrollBottom(); }
-  }
+  if (sp) await sendPhoto(sp, chat, { prompt: scenePrompt(sp, chat, lastBot) });
 }
 const dataUrlBlob = u => fetch(u).then(r => r.blob());
 
@@ -854,6 +904,8 @@ function migrateChat(key, ch) {
   ch.title = ch.title || 'Chat';
   ch.length = ch.length || 'auto';
   ch.summarizedUpTo = ch.summarizedUpTo || 0;
+  if (ch.xp == null) ch.xp = ch.messages.filter(m => m.role === 'user').length;
+  ch.diary = ch.diary || [];
   ch.created = ch.created || (ch.messages[0] && ch.messages[0].ts) || Date.now();
   return ch;
 }
@@ -900,15 +952,14 @@ function openChar(c) {
 }
 
 /* ---------- prompt building ---------- */
-function writingNote(c, chat, upto) {
-  const g = groupOf(chat);
-  const bits = [g ? `reply only as ${c.name}, staying in character` : `stay in character as ${c.name}`];
-  if (LENGTHS[chat.length]) bits.push(LENGTHS[chat.length]);
-  if (chat.note) bits.push('direction: ' + fill(chat.note, c).replace(/[.\s]+$/, ''));
-  const opens = chat.messages.slice(0, upto).filter(m => m.role === 'assistant' && !m.greeting && (!g || m.speaker === c.id)).slice(-3)
-    .map(m => plain(textOf(m)).split(' ').slice(0, 5).join(' ').slice(0, 40)).filter(Boolean);
-  if (opens.length) bits.push(`start differently than your recent replies (${opens.map(o => `"${o}…"`).join(', ')}) and don't reuse their gestures or phrasing`);
-  return `(Note for ${c.name}'s next reply, not part of the story: ${bits.join('; ')}.)`;
+// steering for the next reply; it lives in the instructions, never inside the user's own message
+function directionNote(c, chat) {
+  const user = state.settings.userName || 'You', bits = [];
+  if (state.call && state.call.chatId === chat.id) {
+    bits.push(`This is a live voice call${state.call.fresh ? `, and ${user} just called, so answer the phone` : ''}. Reply with natural spoken words only: 1 to 3 short sentences, no *actions* and no asterisks.`);
+  } else if (LENGTHS[chat.length]) bits.push(`Reply length: ${LENGTHS[chat.length]}.`);
+  if (chat.note) bits.push(`Direction from ${user}: ${fill(chat.note, c)}`);
+  return bits.length ? `[Right now]\n${bits.join('\n')}` : '';
 }
 
 function buildPrompt(c, chat, upto, opts = {}) {
@@ -916,7 +967,7 @@ function buildPrompt(c, chat, upto, opts = {}) {
   const user = s.userName || 'You';
   const avoid = (s.avoid || '').split(/\n|,/).map(x => x.trim()).filter(Boolean);
   const parts = [F(s.systemPrompt)];
-  if (avoid.length) parts.push('Overused phrases to replace with fresh, specific wording: ' + avoid.join('; ') + '.');
+  if (avoid.length) parts.push('Clichés to skip: ' + avoid.join('; ') + '.');
   if (c.personality) parts.push(`[${c.name}]\n${F(c.personality)}`);
   if (c.style) parts.push(`[How ${c.name} talks]\n${F(c.style)}`);
   if (chat.scenario) parts.push(`[Scenario]\n${F(chat.scenario)}`);
@@ -930,6 +981,9 @@ function buildPrompt(c, chat, upto, opts = {}) {
     parts.splice(1, 0, `[Group scene]\nThis is a group roleplay with ${user}${others.length ? ' and ' + others.map(o => o.name).join(', ') : ''}. You write only as ${c.name}. The others are played separately: never write their dialogue, actions or thoughts. Talk to and react to them as well as ${user}, with ${c.name}'s own opinions about each of them.`);
     if (others.length) parts.push('[Others in the scene]\n' + others.map(o => `${o.name}: ${o.tagline}. ${clip(fill(o.personality, o).replace(/\s+/g, ' '), 420)}`).join('\n'));
   }
+  if (!g && chat.xp) parts.push(`[Relationship]\n${c.name} and ${user}: ${LEVELS[levelIdx(chat.xp)][1]}, ${chat.messages.filter(m => m.role === 'user').length} messages together so far. Let that shared history and familiarity show.`);
+  if (s.autoPics && canPaint()) parts.push(`[Photos]\nWhen it fits naturally, ${c.name} can send ${user} a photo (a selfie, an outfit, where they are, something teasing): write [photo: short description of the photo] on its own line at the very end of the reply. Only at special moments, not every reply.`);
+  parts.push(directionNote(c, chat));
   const system = parts.filter(Boolean).join('\n\n');
   const budget = Math.max(1500, (+s.contextTokens || 8000) - (+s.maxTokens || 400));
   let used = est(system) + 150, cut = 0;
@@ -953,7 +1007,6 @@ function buildPrompt(c, chat, upto, opts = {}) {
     if (last(hist).role === 'user') last(hist).content += '\n\n' + opts.extra;
     else hist.push({ role: 'user', content: opts.extra });
   } else if (last(hist).role === 'assistant') hist.push({ role: 'user', content: '[Continue the scene.]' });
-  if (!opts.noNote) last(hist).content += '\n\n' + writingNote(c, chat, upto);
   const out = [{ role: 'system', content: system }, ...hist];
   out.cut = cut;
   return out;
@@ -1018,53 +1071,101 @@ const joinCont = (a, b) => (!b ? a : /[.!?…"*)\]]\s*$/.test(a) ? a.trimEnd() +
 
 /* ---------- generation ---------- */
 const nearBottom = () => { const b = $('#msgs'); return !b || b.scrollHeight - b.scrollTop - b.clientHeight < 160; };
-const scrollBottom = () => { const b = $('#msgs'); if (b) b.scrollTop = b.scrollHeight; };
+const scrollBottom = smooth => { const b = $('#msgs'); if (b) b.scrollTo({ top: b.scrollHeight, behavior: smooth ? 'smooth' : 'auto' }); };
 const TYPING = '<span class="typing"><i></i><i></i><i></i></span>';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const TYPE_SPEED = { natural: 45, fast: 140, instant: 0 }; // characters per second
+const typeSpeed = () => (state.call ? 0 : TYPE_SPEED[state.settings.typeSpeed] ?? 45);
+// characters can send a photo by ending a reply with [photo: what it shows]
+const PHOTO_RE = /\[(?:photo|picture|pic|selfie|image)\s*:\s*([^\]\n]{3,300})\]/i;
+const stripPhotos = t => String(t).replace(/\[(?:photo|picture|pic|selfie|image)\s*:[^\]\n]*(?:\]|$)/gi, '').trimEnd();
+const REFUSAL_START = /^\s*(i'?m sorry,? but|i am sorry,? but|i apologi[sz]e,? but|i can(?:'|no)t (?:help with|continue (?:with )?this|assist with|create|write|engage in|provide|fulfill|comply)|i(?:'m| am) (?:not able|unable) to (?:help|continue|create|write|generate|engage)|as an ai\b|i must decline|i won'?t (?:be able to )?(?:continue|write|create|engage))/i;
+const REFUSAL_ANY = /(content polic|against (?:my|the) (?:guidelines|policies|usage)|can(?:'|no)t (?:continue|engage in|write|generate|create) (?:this|that|explicit|sexual)|not able to (?:continue|create|generate|write) (?:this|that|explicit|sexual))/i;
+const looksRefused = t => !!t && t.length < 900 && (REFUSAL_START.test(t) || REFUSAL_ANY.test(t));
+const canPaint = () => state.settings.provider === 'openrouter' && !!state.settings.apiKey;
+function photoAllowed(chat) { // at most one surprise photo every few replies
+  if (!state.settings.autoPics || !canPaint()) return false;
+  let since = 0;
+  for (let k = chat.messages.length - 1; k >= 0 && !chat.messages[k].image; k--) if (chat.messages[k].role === 'assistant') since++;
+  return since >= 4;
+}
 
 async function generate(c, chat, i, mode = 'reply') {
-  const m = chat.messages[i];
+  const s = state.settings, m = chat.messages[i];
   const baseText = mode === 'continue' ? textOf(m) : '';
   const g = groupOf(chat), others = g ? membersOf(g).filter(o => o.id !== c.id).map(o => o.name) : [];
+  const alt = (s.backupModel || '').trim(), canRetry = mode !== 'continue' && s.autoRetry && alt && alt !== modelFor(c);
   state.busy = true;
   state.abort = new AbortController();
   state.lastError = null;
   state.suggestions = null;
-  renderMessages(); renderExtras(); scrollBottom(); setBusyUI(true, c);
-  let text = '', queued = false, prompt;
-  const paint = () => {
-    queued = false;
+  renderMessages(); renderExtras(); scrollBottom(true); setBusyUI(true, c);
+
+  // replies arrive in bursts; they're revealed at a steady, human typing pace after a short "typing…" pause
+  const cps = typeSpeed(), started = performance.now(), pause = cps ? 650 + Math.random() * 700 : 0;
+  let text = '', shown = 0, finishing = false, timer = 0, prevT = started, doneReveal, photo = null, prompt;
+  const revealed = new Promise(r => { doneReveal = r; });
+  const target = () => stripPhotos(cleanReply(text, c, others));
+  const tick = () => {
+    const now = performance.now(), dt = Math.min(120, now - prevT);
+    prevT = now;
+    const t = target();
+    const hold = (cps && now - started < pause) || (canRetry && !finishing && looksRefused(t.slice(0, 300)));
+    // steady typing pace, only speeding up enough that a long reply never takes more than ~6 seconds to catch up
+    if (!hold) shown = !cps ? t.length : Math.min(t.length, shown + Math.max(1, Math.max(cps, (t.length - shown) / (cps > 60 ? 2.5 : 6)) * dt / 1000));
     const b = state.current === chat.id && $(`.msg[data-i="${i}"] .bubble`);
-    if (!b) return;
-    const stick = nearBottom();
-    b.innerHTML = fmt(fill(m.swipes[m.sw], c)) || TYPING;
-    if (stick) scrollBottom();
+    if (b) {
+      let part = t.slice(0, Math.floor(shown));
+      if ((part.match(/\*/g) || []).length % 2) part += '*'; // keep a half-typed *action* in italics
+      const stick = nearBottom();
+      b.innerHTML = fmt(fill(mode === 'continue' ? joinCont(baseText, part) : part, c)) || (mode === 'continue' ? fmt(fill(baseText, c)) : TYPING);
+      if (stick) scrollBottom();
+    }
+    if (finishing && Math.floor(shown) >= t.length) { timer = 0; return doneReveal(); }
+    timer = setTimeout(tick, 30);
+  };
+  const stopTick = () => { clearTimeout(timer); timer = 0; doneReveal(); };
+  const run = async model => {
+    text = ''; shown = 0;
+    await callModel(prompt, d => { text += d; }, state.abort.signal, { model, max_tokens: chat.length === 'long' ? Math.max(+s.maxTokens, 1000) : undefined });
+    return cleanReply(text, c, others);
   };
   try {
     prompt = mode === 'continue'
       ? buildPrompt(c, chat, i + 1, { extra: '[Continue your last reply from exactly where it stopped. Do not repeat any of it.]' })
       : buildPrompt(c, chat, i);
-    await callModel(prompt, d => {
-      text += d;
-      m.swipes[m.sw] = mode === 'continue' ? joinCont(baseText, text) : text;
-      if (!queued) { queued = true; requestAnimationFrame(paint); }
-    }, state.abort.signal, { model: modelFor(c), max_tokens: chat.length === 'long' ? Math.max(+state.settings.maxTokens, 1000) : undefined });
-    text = cleanReply(text, c, others);
-    if (!text) throw new Error('The model sent an empty reply. Try again, or pick another model.');
-    m.swipes[m.sw] = mode === 'continue' ? joinCont(baseText, text) : text;
-    if (state.settings.ttsAuto && state.current === chat.id) speakText(text, c);
+    tick();
+    let out = await run(modelFor(c));
+    if (canRetry && looksRefused(out)) { // quietly try the backup model before the user sees a refusal
+      const st = $('#status');
+      if (st && state.current === chat.id) st.textContent = `${callName(c)} is rethinking…`;
+      out = await run(alt);
+      if (looksRefused(out)) toast('Both models refused that one. Try rewording it, or choose another backup model in Settings.', true);
+    }
+    const pm = out.match(PHOTO_RE);
+    out = stripPhotos(out).trim();
+    if (!out) throw new Error('The model sent an empty reply. Try again, or pick another model.');
+    text = out;
+    finishing = true;
+    await revealed;
+    m.swipes[m.sw] = mode === 'continue' ? joinCont(baseText, out) : out;
+    if (pm && photoAllowed(chat)) photo = pm[1];
+    if (s.ttsAuto && !state.call && state.current === chat.id) speakText(out, c);
     autoSummarize(c, chat, prompt.cut);
   } catch (e) {
-    text = cleanReply(text, c, others);
-    if (mode === 'continue') m.swipes[m.sw] = joinCont(baseText, text);
-    else if (text) m.swipes[m.sw] = text; // keep whatever arrived
+    stopTick();
+    const got = stripPhotos(cleanReply(text, c, others)).trim();
+    if (mode === 'continue') m.swipes[m.sw] = joinCont(baseText, got);
+    else if (got) m.swipes[m.sw] = got; // keep whatever arrived
     else if (m.swipes.length > 1) { m.swipes.splice(m.sw, 1); m.sw = m.swipes.length - 1; }
     else chat.messages.splice(i, 1);
     if (e.name !== 'AbortError') {
       const msg = niceError(e);
-      if (!text && mode !== 'continue') state.lastError = msg;
+      if (!got && mode !== 'continue') state.lastError = msg;
       toast(msg, true);
     }
   } finally {
+    stopTick();
     m.ts = Date.now();
     state.busy = false;
     state.abort = null;
@@ -1072,9 +1173,10 @@ async function generate(c, chat, i, mode = 'reply') {
     if (state.view === 'chat' && state.current === chat.id) {
       const stick = nearBottom();
       renderMessages(); setBusyUI(false);
-      if (stick) scrollBottom();
+      if (stick) scrollBottom(true);
     }
   }
+  if (photo) await sendPhoto(c, chat, { desc: photo });
 }
 
 // keeps a running "story so far" once old messages start falling out of the AI's memory
@@ -1108,22 +1210,87 @@ async function send(forceSpeaker) {
   if (!text && !forceSpeaker && (!lastMsg || lastMsg.role !== 'user')) return;
   if (!ready(() => showChat(chat.id))) return;
   primeSpeech();
-  if (text) {
-    chat.messages.push({ id: uid(), role: 'user', content: text, ts: Date.now() });
-    input.value = ''; state.drafts[chat.id] = ''; autoGrow(input);
-  }
   state.stopRequested = false;
+  let levelUp = null;
+  if (text) {
+    levelUp = addUserMessage(chat, c, text);
+    input.value = ''; state.drafts[chat.id] = ''; autoGrow(input);
+    renderMessages(); scrollBottom(true);
+    if (typeSpeed()) { state.busy = true; await sleep(350); } // let your message land before they start typing
+  }
   if (!c.group) {
     chat.messages.push({ id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now() });
-    return generate(c, chat, chat.messages.length - 1);
+    await generate(c, chat, chat.messages.length - 1);
+  } else {
+    const said = text || (lastMsg && lastMsg.role === 'user' ? lastMsg.content : '');
+    const responders = forceSpeaker ? [charById(forceSpeaker)].filter(Boolean) : pickResponders(c, chat, said);
+    for (const sp of responders) {
+      chat.messages.push({ id: uid(), role: 'assistant', speaker: sp.id, swipes: [''], sw: 0, ts: Date.now() });
+      const n = chat.messages.length;
+      await generate(sp, chat, n - 1);
+      if (state.stopRequested || state.current !== chat.id || chat.messages.length < n || state.lastError) break;
+    }
   }
-  const said = text || (lastMsg && lastMsg.role === 'user' ? lastMsg.content : '');
-  const responders = forceSpeaker ? [charById(forceSpeaker)].filter(Boolean) : pickResponders(c, chat, said);
-  for (const sp of responders) {
-    chat.messages.push({ id: uid(), role: 'assistant', speaker: sp.id, swipes: [''], sw: 0, ts: Date.now() });
-    const n = chat.messages.length;
-    await generate(sp, chat, n - 1);
-    if (state.stopRequested || state.current !== chat.id || chat.messages.length < n || state.lastError) break;
+  state.busy = false;
+  if (levelUp != null && !state.stopRequested && !state.lastError) celebrate(c, chat, levelUp);
+}
+
+/* ---------- relationship levels (1:1 chats): every message brings you closer, and each level brings a gift ---------- */
+const LEVELS = [ // [messages needed, name, emoji, gift photo, gift photo for male characters]
+  [0, 'Strangers', '🤍'],
+  [8, 'Getting close', '💗', 'a cute candid selfie, smiling at the camera'],
+  [20, 'Crush', '💘', 'a flirty mirror selfie, blowing a kiss'],
+  [40, 'Dating', '💞', 'a selfie dressed up for a date night, looking stunning'],
+  [70, 'Lovers', '❤️‍🔥', 'a teasing selfie in lace lingerie on their bed, warm low light', 'a teasing shirtless selfie in bed, warm low light'],
+  [110, 'Soulmates', '💍', 'an intimate photo in soft morning light, in bed wearing only an oversized shirt, loving smile', 'an intimate photo in soft morning light, shirtless in bed, loving smile'],
+];
+const levelIdx = xp => LEVELS.reduce((k, L, j) => (xp >= L[0] ? j : k), 0);
+function addUserMessage(chat, c, text) {
+  chat.messages.push({ id: uid(), role: 'user', content: text, ts: Date.now() });
+  state.settings.lastSeen = Date.now();
+  if (c.group) return null;
+  const before = levelIdx(chat.xp || 0);
+  chat.xp = (chat.xp || 0) + (text.length > 140 ? 2 : 1);
+  const after = levelIdx(chat.xp);
+  const lb = $('#btnLove');
+  if (lb) lb.textContent = LEVELS[after][2];
+  return after > before ? after : null;
+}
+function celebrate(c, chat, lvl) {
+  const L = LEVELS[lvl], gift = (isMale(c) && L[4]) || L[3];
+  toast(`${L[2]} You and ${callName(c)} are now: ${L[1]}!`, false, 4000);
+  if (gift && state.settings.autoPics && canPaint()) sendPhoto(c, chat, { desc: gift, gift: L[1] });
+}
+function loveSheet() {
+  const chat = curChat(), c = curChar(), xp = chat.xp || 0, k = levelIdx(xp), L = LEVELS[k], next = LEVELS[k + 1];
+  const pct = next ? Math.round(((xp - L[0]) / (next[0] - L[0])) * 100) : 100;
+  openSheet(`<div class="prof">${avatarHtml(c, 'av96')}<h3>${L[2]} ${esc(L[1])}</h3><p class="tagline">You and ${esc(callName(c))}</p></div>
+    <div class="lovebar"><i style="width:${pct}%"></i></div>
+    <p class="hint" style="margin:10px 4px 16px;text-align:center">${next ? `${next[0] - xp} more message${next[0] - xp === 1 ? '' : 's'} until ${next[2]} ${esc(next[1])}.` : 'You made it all the way.'}${state.settings.autoPics && canPaint() ? ` At every new level, ${esc(callName(c))} sends you a special picture, which also goes into their gallery.` : ''}</p>
+    <div class="levels">${LEVELS.map((x, j) => `<div class="${j <= k ? 'on' : ''}"><span>${x[2]}</span><b>${esc(x[1])}</b><small>${x[0]} messages</small></div>`).join('')}</div>`);
+}
+
+// a picture message from a character: a photo they chose to send, a level-up gift, or "Ask for a picture"
+const photoPrompt = (c, desc) => `${artFor(c)}. A photo ${callName(c)} took and sent: ${desc}. The person in it is an adult${c.ageLabel || c.age ? ` (age ${c.ageLabel || c.age})` : ''} with a mature face and body: ${lookOf(c)}. Natural and candid, no text, no watermark.`;
+async function sendPhoto(c, chat, { desc, prompt, gift } = {}) {
+  if (!canPaint()) return;
+  const m = { id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now(), image: 'pending' };
+  if (groupOf(chat)) m.speaker = c.id;
+  chat.messages.push(m);
+  state.busy = true;
+  const here = () => state.view === 'chat' && state.current === chat.id;
+  if (here()) { renderMessages(); setBusyUI(true, c); scrollBottom(true); }
+  try {
+    m.image = await shrinkImage(await whileAwake(() => makeImage(prompt || photoPrompt(c, desc), '3:4')), 768);
+    m.swipes = [gift ? '*sends you a special picture*' : '*sends a picture*'];
+    if (gift) { const key = galKeyOf(c); (await getGallery(key)).push({ id: uid(), url: m.image, label: `Gift: ${gift}`, ts: Date.now() }); saveGallery(key); }
+  } catch (e) {
+    chat.messages.splice(chat.messages.indexOf(m), 1);
+    if (prompt || [401, 402].includes(e.status)) toast(niceError(e), true); // surprise photos fail quietly
+  } finally {
+    state.busy = false;
+    saveChat(chat.id);
+    if (here()) { renderMessages(); setBusyUI(false); scrollBottom(true); }
   }
 }
 function regenerate() {
@@ -1172,6 +1339,276 @@ async function suggestReplies() {
   renderExtras();
 }
 
+/* ---------- adults only: blocks cards that describe someone under 18 ---------- */
+const UNDERAGE = /\b(lolis?|lolicon|shota(?:con)?|underage|under-age|preteen|pre-teen|middle[- ]schooler|elementary[- ]schooler|junior high schooler|grade[- ]schooler)\b|\b(?:is|am|i'?m|she'?s|he'?s|they'?re)\s+(?:an?\s+)?(?:1[0-7]|[1-9])[\s-]*(?:years?|yrs?)?[\s-]*old\b|\b(?:1[0-7]|[1-9])\s*(?:yo|y\/o)\b|\bage\s*[:=]\s*(?:1[0-7]|[1-9])\b/i;
+const looksUnderage = c => UNDERAGE.test([c.name, c.tagline, c.bio, c.personality, c.look, c.ageLabel, ...(c.scenes || []).map(s => `${s.scenario} ${s.greeting}`)].join('\n'));
+
+/* ---------- AI character maker ---------- */
+const MAKER_IDEAS = ['a flirty vampire bartender who only works night shifts', 'a strict but secretly sweet military captain', 'a goth gamer girl who lives next door', 'a lonely mermaid who washed up on your beach', 'a cocky rival street racer', 'a shy witch who runs a potion café'];
+function aiMakerSheet() {
+  const label = '✨ Create (about 1¢ including a picture)';
+  const sh = openSheet(`<div class="sheet-head"><button class="text-btn" data-x>Cancel</button><b>Create with AI</b><span style="width:64px"></span></div>
+    <div class="sheet-body">
+      <label class="field"><span>Describe your character in a sentence or two</span><textarea id="aiIdea" rows="3" placeholder="e.g. a tsundere vampire maid who hates the sun"></textarea></label>
+      <div class="chips wrap">${MAKER_IDEAS.map((t, k) => `<button class="chip" data-idea="${k}">${esc(t)}</button>`).join('')}</div>
+      <label class="field"><span>Look</span><select id="aiStyle"><option value="Anime">Anime</option><option value="Realistic">Realistic</option><option value="Fantasy">Fantasy</option><option value="Sci-fi">Sci-fi</option></select></label>
+      <button class="btn primary" id="aiGo">${label}</button>
+      <p class="hint" style="margin-top:4px">The AI writes their personality, looks, two stories and example dialogue, then paints their picture. You can change anything afterwards with Edit character. Characters are always adults.</p>
+    </div>`);
+  sh.classList.add('tall');
+  $('[data-x]', sh).onclick = () => closeSheet();
+  sh.addEventListener('click', e => { const b = e.target.closest('[data-idea]'); if (b) $('#aiIdea', sh).value = MAKER_IDEAS[+b.dataset.idea]; });
+  $('#aiGo', sh).onclick = async () => {
+    const idea = $('#aiIdea', sh).value.trim(), btn = $('#aiGo', sh);
+    if (!idea) return toast('Describe your character first', true);
+    if (!ready(showHome)) return;
+    btn.disabled = true; btn.textContent = '✨ Writing your character…';
+    try { await aiMake(idea, $('#aiStyle', sh).value); }
+    catch (e) { toast(e instanceof SyntaxError ? "Couldn't read the AI's answer. Try again." : niceError(e), true); btn.disabled = false; btn.textContent = label; }
+  };
+}
+async function aiMake(idea, style) {
+  const msgs = [
+    { role: 'system', content: 'You design original characters for an adult roleplay app. Every character is an adult aged 21 or older, with an adult appearance. Reply with a single JSON object and nothing else.' },
+    { role: 'user', content: `Create a character from this idea: "${idea}". Style: ${style}.
+Return a JSON object with exactly these keys:
+"name": full name,
+"age": a number, 21 or older,
+"gender": "f", "m" or "",
+"emoji": one emoji that fits them,
+"tagline": a hook under 90 characters,
+"tags": 3 to 6 tags chosen from Anime, Fantasy, Realistic, Sci-fi, Supernatural, Female, Male, Non-binary, Dominant, Submissive, Slow burn, Comedy, Wholesome, College (include "${style}"),
+"bio": two sentences for their profile, using {{user}} for the user,
+"personality": 150 to 220 words covering their age, looks, background, personality, flaws, what they want, and how they act in romance and in intimate scenes, using {{user}} for the user,
+"style": one or two sentences on how they talk,
+"look": a comma-separated visual description for an image generator (age, build, hair, eyes, outfit, setting),
+"scenes": an array of 2 objects with "title", "scenario" (one or two sentences, using {{user}}) and "greeting" (a 60 to 120 word opening message in their voice, actions in *asterisks*, dialogue in quotes),
+"examples": one short exchange formatted as "{{user}}: ...\\n{{char}}: ...".` },
+  ];
+  let out = '';
+  await callModel(msgs, d => { out += d; }, undefined, { stream: false, max_tokens: 2200, plain: true, temperature: 0.9 });
+  const j = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1));
+  const age = parseInt(j.age, 10);
+  const c = normalizeChar({
+    id: uid(), created: Date.now(), name: String(j.name || '').trim() || 'New character', ageLabel: age ? String(age) : '',
+    emoji: j.emoji || '✨', tagline: j.tagline, bio: j.bio, personality: j.personality, style: j.style, look: j.look, examples: j.examples,
+    tags: Array.isArray(j.tags) ? j.tags.filter(t => typeof t === 'string') : [style],
+    scenes: (Array.isArray(j.scenes) ? j.scenes : []).filter(s => s && s.greeting).map(s => ({ title: String(s.title || 'Story'), scenario: String(s.scenario || ''), greeting: String(s.greeting) })),
+    voice: { gender: j.gender === 'm' || j.gender === 'f' ? j.gender : '', pitch: 1 }, colors: hues({ name: String(Math.random()) }),
+  });
+  if (!(age >= 18) || looksUnderage(c)) throw new Error('Velvet only makes adult characters. Try describing them differently.');
+  if (!c.scenes.length || !c.personality) throw new Error("The AI's answer came back incomplete. Try again.");
+  state.chars.unshift(c);
+  saveChars();
+  closeSheet(true);
+  showHome();
+  showCharSheet(c, showHome);
+  toast(`${c.name} is ready. Painting their picture…`);
+  if (canPaint()) whileAwake(() => makePortrait(c)).then(() => { const p = $('#profPic'); if (p && state.sheet) p.innerHTML = avatarHtml(c, 'av96'); }).catch(() => {});
+}
+
+/* ---------- import straight from a Chub link ---------- */
+function linkImportSheet() {
+  textSheet({ title: 'Import from a Chub link', ok: 'Import', placeholder: 'Paste a link like https://chub.ai/characters/someone/character-name',
+    save: v => { importFromLink(v).catch(e => toast('Import failed: ' + e.message, true)); } });
+}
+async function importFromLink(url) {
+  const m = String(url).match(/(?:chub\.ai|characterhub\.org)\/characters\/([^/?#\s]+)\/([^/?#\s]+)/i);
+  if (!m) throw new Error("that isn't a Chub character link (chub.ai/characters/…).");
+  const path = `${m[1]}/${m[2]}`;
+  toast('Importing…', false, 0);
+  const res = await fetch(`https://avatars.charhub.io/avatars/${path}/chara_card_v2.png`);
+  if (res.ok) return importFile(new File([await res.blob()], 'card.png', { type: 'image/png' }));
+  const r2 = await fetch(`https://api.chub.ai/api/characters/${path}?full=true`);
+  const node = r2.ok ? (await r2.json()).node : null, d = node && node.definition;
+  if (!d || !d.name) throw new Error("couldn't find that character on Chub.");
+  const card = { spec: 'chara_card_v2', data: { name: d.name, description: d.personality || d.description || '', scenario: d.scenario || '', first_mes: d.first_message || '', mes_example: d.example_dialogs || '', alternate_greetings: d.alternate_greetings || [], tags: node.topics || [] } };
+  return importFile(new File([JSON.stringify(card)], 'card.json', { type: 'application/json' }));
+}
+
+/* ---------- they text you first (when you come back after a while) ---------- */
+async function textFirst() {
+  const s = state.settings, hrs = +s.textFirst, now = Date.now();
+  const away = s.lastSeen ? (now - s.lastSeen) / 36e5 : 0;
+  s.lastSeen = now;
+  saveSettings();
+  if (!hrs || away < hrs || configured() || state.textingNow) return;
+  state.textingNow = true;
+  const user = s.userName || 'You', sent = [];
+  const picks = state.chars.filter(c => !c.group).map(c => [c, activeChat(c)])
+    .filter(([, ch]) => ch && ch.messages.some(m => m.role === 'user') && now - lastTs(ch) < 14 * 864e5 && !last(ch.messages).unprompted)
+    .sort((a, b) => lastTs(b[1]) - lastTs(a[1])).slice(0, 2);
+  for (const [c, ch] of picks) {
+    const instr = `[Out of character: ${user} hasn't replied for about ${Math.round(away)} hours. Write the text message ${c.name} sends them out of the blue, like a real text on their phone: in character, 1 to 3 sentences, about something from your story or what ${c.name} is doing or feeling right now, the kind of message that makes them want to reply. No actions or asterisks.]`;
+    try {
+      let out = '';
+      await callModel(buildPrompt(c, ch, ch.messages.length, { extra: instr, noNote: true }), d => { out += d; }, undefined, { stream: false, max_tokens: 220, model: modelFor(c) });
+      out = stripPhotos(cleanReply(out, c)).trim();
+      if (!out || looksRefused(out)) continue;
+      ch.messages.push({ id: uid(), role: 'assistant', swipes: [out], sw: 0, ts: Date.now(), unprompted: true });
+      ch.unread = (ch.unread || 0) + 1;
+      saveChat(ch.id);
+      sent.push(callName(c));
+    } catch {}
+  }
+  state.textingNow = false;
+  if (!sent.length) return;
+  toast(`💌 ${sent.join(' and ')} texted you`, false, 4000);
+  if (state.view === 'home') showHome();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { state.settings.lastSeen = Date.now(); saveSettings(); }
+  else textFirst();
+});
+
+/* ---------- their diary ---------- */
+function diarySheet() {
+  const chat = curChat(), c = curChar(), name = callName(c);
+  const sh = openSheet(`<div class="sheet-head"><span style="width:64px"></span><b>${esc(name)}'s diary</b><button class="text-btn" data-x>Close</button></div>
+    <div class="sheet-body" id="diaryBody"></div><button class="btn primary" id="diaryNew" style="margin:10px 0 0"></button>`);
+  sh.classList.add('tall');
+  const fresh = () => chat.messages.length - (chat.diary.length ? last(chat.diary).upto : 0);
+  const draw = () => {
+    $('#diaryBody', sh).innerHTML = chat.diary.length
+      ? [...chat.diary].reverse().map(e => `<div class="diary"><small>${esc(new Date(e.ts).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }))}</small><p>${fmt(fill(e.text, c))}</p></div>`).join('')
+      : `<p class="empty">${esc(name)} hasn't written about you yet.</p>`;
+    const b = $('#diaryNew', sh), n = fresh();
+    b.disabled = n < 4;
+    b.textContent = n < 4 ? 'Chat a little more for a new entry' : `Read what ${name} wrote today`;
+  };
+  const write = async () => {
+    if (!ready(() => showChat(chat.id))) return;
+    const b = $('#diaryNew', sh), user = state.settings.userName || 'You';
+    b.disabled = true; b.textContent = `${name} is writing…`;
+    const instr = `[Out of character: write ${c.name}'s private diary entry about ${user} and what has happened between them recently. First person, in ${c.name}'s own voice and personality, 120 to 200 words. Be honest and intimate: the feelings, desires, worries and fantasies ${c.name} would never say out loud. No asterisks and no date heading.]`;
+    try {
+      let out = '';
+      await callModel(buildPrompt(c, chat, chat.messages.length, { extra: instr, noNote: true }), d => { out += d; }, undefined, { stream: false, max_tokens: 500, model: modelFor(c) });
+      out = stripPhotos(cleanReply(out, c)).trim();
+      if (!out || looksRefused(out)) throw new Error(`${name} didn't feel like writing. Try again, or with another model.`);
+      chat.diary.push({ ts: Date.now(), text: out, upto: chat.messages.length });
+      saveChat(chat.id);
+    } catch (e) { toast(niceError(e), true); }
+    if (state.sheet && state.sheet.sh === sh) draw();
+  };
+  $('[data-x]', sh).onclick = () => closeSheet();
+  $('#diaryNew', sh).onclick = write;
+  draw();
+  if (fresh() >= 12 && !configured()) write(); // a new entry is waiting after a lot of chatting
+}
+
+/* ---------- voice calls: talk out loud, hear them answer ---------- */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+function startCall() {
+  const chat = curChat(), c = curChar();
+  if (state.busy || c.group || state.call) return;
+  if (!ready(() => showChat(chat.id))) return;
+  if (!('speechSynthesis' in window)) return toast("This device can't do voice calls", true);
+  speechSynthesis.speak(new SpeechSynthesisUtterance(' ')); // iOS only speaks after a tap
+  state.call = { chatId: chat.id, c, rec: null, started: Date.now(), fresh: true, phase: '', heard: '', muted: false };
+  const el = document.createElement('div');
+  el.id = 'call';
+  el.innerHTML = `<div class="call-bg" style="${c.avatar ? `background-image:url('${c.avatar}')` : gradCss(c)}"></div>
+    <div class="call-top">${avatarHtml(c, 'call-av')}<div class="call-name">${esc(c.name)}</div><div class="call-status" id="callStatus">Calling…</div></div>
+    <div class="call-sub" id="callSub"></div>
+    <div style="width:100%;display:flex;flex-direction:column;align-items:center">
+      <div class="call-type" id="callType" ${SpeechRec ? 'hidden' : ''}><input id="callInput" placeholder="Say something…" autocomplete="off"><button class="send" id="callSend" aria-label="Send">${ICON.send}</button></div>
+      <div class="call-btns">${SpeechRec ? `<button class="call-btn" id="callMic" aria-label="Microphone">${ICON.mic}</button>` : ''}<button class="call-btn end" id="callEnd" aria-label="Hang up">${ICON.phone}</button>${SpeechRec ? '<button class="call-btn" id="callKb" aria-label="Type instead">⌨️</button>' : ''}</div>
+    </div>`;
+  document.body.append(el);
+  $('#callEnd').onclick = endCall;
+  if ($('#callMic')) $('#callMic').onclick = () => {
+    const call = state.call;
+    if (!call) return;
+    if (call.phase === 'listening') { call.muted = true; stopListening(); callPhase('muted'); }
+    else if (call.phase === 'muted' || call.phase === 'idle') { call.muted = false; listen(); }
+  };
+  if ($('#callKb')) $('#callKb').onclick = () => { $('#callType').hidden = !$('#callType').hidden; };
+  const sendTyped = () => {
+    const v = $('#callInput').value.trim();
+    if (!v || !state.call || state.busy) return;
+    $('#callInput').value = '';
+    stopListening();
+    callSay(v);
+  };
+  $('#callSend').onclick = sendTyped;
+  $('#callInput').onkeydown = e => { if (e.key === 'Enter') sendTyped(); };
+  callReply(); // they pick up
+}
+function callPhase(p, sub) {
+  const call = state.call;
+  if (!call) return;
+  call.phase = p;
+  const labels = { thinking: `${callName(call.c)} is talking…`, speaking: '', listening: 'Listening…', muted: 'Muted. Tap the mic to talk', idle: SpeechRec ? 'Tap the mic to talk' : 'Type below to talk' };
+  const st = $('#callStatus'), av = $('#call .call-av'), mic = $('#callMic');
+  if (st) st.textContent = p === 'speaking' ? fmtCallTime(call) : labels[p];
+  if (av) av.classList.toggle('talking', p === 'speaking');
+  if (mic) mic.classList.toggle('on', p === 'listening');
+  if (sub != null && $('#callSub')) $('#callSub').innerHTML = sub;
+}
+const fmtCallTime = call => { const s = Math.round((Date.now() - call.started) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+function listen() {
+  const call = state.call;
+  if (!call || call.muted || !SpeechRec || state.busy) return callPhase('idle');
+  const r = new SpeechRec();
+  r.lang = navigator.language || 'en-US';
+  r.interimResults = true;
+  r.continuous = false;
+  call.rec = r;
+  call.heard = '';
+  r.onresult = e => { let t = ''; for (const res of e.results) t += res[0].transcript; call.heard = t; $('#callSub').innerHTML = `<small>${esc(t)}</small>`; };
+  r.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { call.muted = true; callPhase('idle'); toast('Allow the microphone and speech recognition for Velvet, or tap ⌨️ to type.', true); }
+  };
+  r.onend = () => {
+    if (state.call !== call || call.rec !== r) return;
+    call.rec = null;
+    const said = call.heard.trim();
+    if (said) callSay(said);
+    else if (!call.muted && call.phase === 'listening') setTimeout(listen, 250); // silence: keep listening
+  };
+  try { r.start(); callPhase('listening'); } catch { callPhase('idle'); }
+}
+function stopListening() {
+  const call = state.call;
+  if (call && call.rec) { const r = call.rec; call.rec = null; try { r.abort(); } catch {} }
+}
+async function callSay(text) {
+  const call = state.call;
+  if (!call) return;
+  const chat = state.chats[call.chatId];
+  const lv = addUserMessage(chat, call.c, text);
+  callPhase('thinking', `<small>“${esc(text)}”</small>`);
+  await callReply();
+  if (lv != null && state.call === call) celebrate(call.c, chat, lv);
+}
+async function callReply() {
+  const call = state.call;
+  if (!call) return;
+  const chat = state.chats[call.chatId], c = call.c;
+  callPhase('thinking');
+  const m = { id: uid(), role: 'assistant', swipes: [''], sw: 0, ts: Date.now() };
+  chat.messages.push(m);
+  await generate(c, chat, chat.messages.length - 1);
+  call.fresh = false;
+  if (state.call !== call) return;
+  const reply = chat.messages.includes(m) ? textOf(m) : '';
+  if (!reply) return listen();
+  callPhase('speaking', esc(plain(reply)));
+  speakText(reply, c, () => { if (state.call === call) listen(); });
+}
+function endCall() {
+  const call = state.call;
+  if (!call) return;
+  state.call = null;
+  if (call.rec) { try { call.rec.abort(); } catch {} }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (state.abort) state.abort.abort();
+  const el = $('#call');
+  if (el) el.remove();
+  toast(`📞 Call ended · ${fmtCallTime(call)}`);
+}
+
 /* ---------- read aloud ---------- */
 const FEMALE_VOICES = ['Samantha', 'Ava', 'Allison', 'Susan', 'Zoe', 'Karen', 'Moira', 'Tessa', 'Serena', 'Kate', 'Victoria', 'Fiona', 'Nicky', 'Joelle', 'Catherine', 'Shelley', 'Sandy', 'Flo', 'Martha', 'Aria', 'Jenny', 'Zira', 'Sonia', 'Libby', 'Natasha', 'Female'];
 const MALE_VOICES = ['Daniel', 'Alex', 'Aaron', 'Fred', 'Evan', 'Nathan', 'Tom', 'Oliver', 'Arthur', 'Gordon', 'Rishi', 'Reed', 'Rocko', 'Eddy', 'Ralph', 'Guy', 'David', 'Mark', 'Ryan', 'Christopher', 'Eric', 'Male'];
@@ -1188,14 +1625,16 @@ function pickVoice(c) {
   for (const ch of c.name || '') h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return list[h % list.length]; // the same character always gets the same voice
 }
-function speakText(t, c) {
-  if (!('speechSynthesis' in window)) return toast("This device can't read aloud", true);
+function speakText(t, c, onEnd) {
+  const end = () => { if (onEnd) { const f = onEnd; onEnd = null; f(); } };
+  if (!('speechSynthesis' in window)) { toast("This device can't read aloud", true); return end(); }
   let s = fill(t, c);
   if (!state.settings.ttsActions) { const spoken = s.replace(/\*[^*]*\*/g, ' '); if (/[\p{L}\p{N}]/u.test(spoken)) s = spoken; }
   s = s.replace(/[*_~"“”]/g, '').replace(/\s+/g, ' ').trim();
-  if (!s) return;
+  if (!s) return end();
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(s);
+  u.onend = u.onerror = end;
   const v = pickVoice(c);
   if (v) { u.voice = v; u.lang = v.lang; }
   u.pitch = +(c.voice && c.voice.pitch) || 1;
@@ -1269,8 +1708,11 @@ function mount(html, view) {
   closeSheet(true);
   if (state.view === 'chat' && view !== 'chat' && state.abort) state.abort.abort(); // leaving a chat stops its reply
   if ('speechSynthesis' in window && state.view === 'chat') speechSynthesis.cancel();
+  if (state.call && view !== 'chat') endCall();
   state.view = view;
   app.innerHTML = html;
+  const main = app.querySelector('main');
+  if (main) main.classList.add('view-in');
 }
 const tabBar = on => `<nav class="tabs"><button data-tab="home" class="${on === 'home' ? 'on' : ''}">${ICON.chat}<span>Chats</span></button><button data-tab="discover" class="${on === 'discover' ? 'on' : ''}">${ICON.compass}<span>Discover</span></button></nav>`;
 function bindTabs() {
@@ -1285,7 +1727,8 @@ function showHome() {
     const ch = activeChat(c), lm = ch && last(ch.messages);
     const who = lm && (lm.role === 'user' ? 'You: ' : c.group ? callName(speakerOf(lm, c)) + ': ' : '');
     const preview = lm ? who + plain(fill(textOf(lm), speakerOf(lm, c))) : (c.tagline || plain(c.personality));
-    return `<button class="row" data-id="${c.id}">${charAvatar(c, 'av56')}<span class="row-main"><span class="row-top"><b>${esc(c.name)}</b><small>${ago(activity(c))}</small></span><span class="row-sub">${esc(clip(preview, 120))}</span></span></button>`;
+    const unread = (ch && ch.unread) || 0;
+    return `<button class="row${unread ? ' new' : ''}" data-id="${c.id}">${charAvatar(c, 'av56')}<span class="row-main"><span class="row-top"><b>${esc(c.name)}</b><small>${ago(activity(c))}${unread ? `<i class="unread">${unread}</i>` : ''}</small></span><span class="row-sub">${esc(clip(preview, 120))}</span></span></button>`;
   }).join('');
   const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1305,8 +1748,10 @@ function showHome() {
   if ($('#btnInstallX')) $('#btnInstallX').onclick = () => { lsSet('installHintDone', '1'); $('#installCard').remove(); };
   $('.list').onclick = e => { const r = e.target.closest('.row'); if (r) openChar(charById(r.dataset.id)); };
   $('#btnNew').onclick = () => sheetMenu([
+    ['spark', 'Create a character with AI (describe it in one line)', aiMakerSheet],
     ['group', 'Start a group chat', () => showGroupEdit(null, showHome)],
-    ['person', 'Create a character', () => showEdit(null, showHome)],
+    ['link', 'Import from a Chub link', linkImportSheet],
+    ['person', 'Create a character by hand', () => showEdit(null, showHome)],
     ['import', 'Import character card (PNG or JSON)', () => pickFile('.png,.json,image/png,application/json', importFile)],
     ['compass', 'Browse characters', showDiscover],
   ]);
@@ -1474,13 +1919,18 @@ function showChat(id) {
   if (state.current !== id) {
     if (state.abort) state.abort.abort();
     state.lastError = null; state.suggestions = null;
+    // old messages appear instantly; unread texts and a brand-new chat's opening float in
+    const fresh = Date.now() - (chat.created || 0) < 3000 && chat.messages.every(m => m.greeting);
+    if (!fresh) chat.messages.slice(0, chat.messages.length - (chat.unread || 0)).forEach(m => state.seen.add(m.id));
   }
   state.current = id;
   if (c.chatId !== id) { c.chatId = id; saveChars(); }
+  if (chat.unread) { chat.unread = 0; saveChat(id); }
   mount(`
   <div class="bg-wrap"><div class="chat-bg" ${c.avatar ? `style="background-image:url('${c.avatar}')"` : `style="${gradCss(c)}"`}></div></div>
   <header class="bar"><button class="icon-btn" id="btnBack" aria-label="Back">${ICON.back}</button>
     <button class="chat-title" id="btnInfo">${charAvatar(c, 'av36')}<span><b>${esc(c.name)}</b><small id="status">${esc(subtitle(chat, c))}</small></span></button>
+    ${c.group ? '' : `<button class="icon-btn love-btn" id="btnLove" aria-label="Relationship">${LEVELS[levelIdx(chat.xp || 0)][2]}</button><button class="icon-btn" id="btnCall" aria-label="Voice call">${ICON.phone}</button>`}
     <button class="icon-btn" id="btnMenu" aria-label="Chat options">${ICON.dots}</button></header>
   <main class="scroll msgs" id="msgs"></main>
   <footer class="composer"><div id="extras"></div><div class="input-row">
@@ -1500,6 +1950,8 @@ function showChat(id) {
   $('#btnBack').onclick = showHome;
   $('#btnInfo').onclick = () => (c.group ? showGroupEdit(c.id, () => showChat(id)) : showCharSheet(c, () => showChat(id)));
   $('#btnMenu').onclick = chatMenu;
+  if ($('#btnLove')) $('#btnLove').onclick = loveSheet;
+  if ($('#btnCall')) $('#btnCall').onclick = startCall;
   $('#extras').onclick = e => {
     if (e.target.closest('#btnSteerPill')) return steerSheet();
     const spk = e.target.closest('[data-sp]');
@@ -1543,7 +1995,7 @@ function msgHtml(m, i, isLast, c) {
   if (isLast && !state.busy) {
     ctrls = `<div class="swipes">${n > 1 ? `<button data-act="prev" aria-label="Previous reply" ${m.sw === 0 ? 'disabled' : ''}>‹</button><span>${m.sw + 1}/${n}</span>` : ''}${m.sw < n - 1 ? '<button data-act="next" aria-label="Next reply">›</button>' : !m.greeting ? `<button data-act="next" aria-label="New reply">${ICON.redo}</button>` : ''}</div>`;
   }
-  return `<div class="msg bot" data-i="${i}">${avatarHtml(sp, 'av28')}<div class="col"><div class="name">${esc(sp.name)}</div><div class="bubble">${t.trim() ? fmt(t) : TYPING}</div>${ctrls}</div></div>`;
+  return `<div class="msg bot" data-i="${i}">${avatarHtml(sp, 'av28')}<div class="col"><div class="name">${esc(sp.name)}${m.unprompted ? '<span class="txt-tag">💌 texted you</span>' : ''}</div><div class="bubble">${t.trim() ? fmt(t) : TYPING}</div>${ctrls}</div></div>`;
 }
 function renderMessages() {
   const box = $('#msgs');
@@ -1556,6 +2008,10 @@ function renderMessages() {
     html += `<div class="retry"><span>${esc(clip(state.lastError, 160))}</span><button data-act="retry">Retry</button></div>`;
   const stick = nearBottom();
   box.innerHTML = html;
+  for (const el of box.querySelectorAll('.msg')) { // only messages you haven't seen yet float in
+    const mm = chat.messages[+el.dataset.i];
+    if (mm && !state.seen.has(mm.id)) { state.seen.add(mm.id); el.classList.add('enter'); }
+  }
   const pic = box.querySelector('.msg:last-child img.pic'); // pictures change height once they load
   if (pic && stick && !pic.complete) pic.onload = scrollBottom;
 }
@@ -1618,6 +2074,7 @@ function chatMenu() {
     ['camera', 'Ask for a picture', scenePicture],
     ['steer', 'Steer the story', steerSheet],
     ['memory', 'Memory & scenario', memorySheet],
+    ...(c.group ? [] : [['book', `${callName(c)}'s diary`, diarySheet]]),
     ['list', `All chats with ${c.group ? 'this group' : callName(c)} (${n})`, () => chatList(c)],
     ['fresh', 'New chat', () => scenePicker(c)],
     [c.group ? 'group' : 'person', c.group ? 'Edit group' : 'Edit character', () => showEdit(c.id, () => showChat(chat.id))],
@@ -1881,7 +2338,15 @@ function showSettings(back) {
     <p class="hint" id="keyHint"></p>
     <div class="field"><span>Model</span><div class="inline"><input id="s_model" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Tap Browse to pick one"><button class="btn" id="btnModels" type="button">Browse</button></div></div>
     <p class="hint">Recommended: deepseek/deepseek-v4.1-flash-1017 (the default; top roleplay model on OpenRouter, about 0.3¢ per reply). Cheaper: z-ai/glm-5.3-flash. If a model turns prudish or repetitive, try another one.</p>
+    <div class="field"><span>Backup model <em>takes over when a reply gets refused</em></span><div class="inline"><input id="s_backupModel" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="z-ai/glm-5.3-flash"><button class="btn" id="btnBackupModels" type="button">Browse</button></div></div>
+    ${toggle('autoRetry', 'Automatically retry refused replies with the backup model')}
     <button class="btn" id="btnTest">Test connection</button>
+
+    <div class="section">Immersion</div>
+    <label class="field"><span>Typing speed</span><select id="s_typeSpeed"><option value="natural">Natural: types like a real person</option><option value="fast">Fast</option><option value="instant">Instant</option></select></label>
+    <label class="field"><span>Characters text you first</span><select id="s_textFirst"><option value="0">Never</option><option value="2">After 2 hours away</option><option value="6">After 6 hours away</option><option value="12">After 12 hours away</option><option value="24">After a day away</option></select></label>
+    ${toggle('autoPics', 'Characters send pictures on their own (about 1¢ each)')}
+    <p class="hint" style="margin-top:2px">Texts show up when you open Velvet, since a web app can't send notifications by itself. Characters also send a special picture each time your relationship levels up (the heart at the top of a chat). The 📞 button starts a voice call.</p>
 
     <div class="section">You</div>
     <label class="field"><span>Your name</span><input id="s_userName" maxlength="40"></label>
@@ -1896,7 +2361,8 @@ function showSettings(back) {
     <p class="hint" style="margin-top:2px">Auto memory writes a "story so far" when a chat outgrows the chat memory, so characters don't forget what happened. You can read and edit it under ⋯ → Memory.</p>
 
     <div class="section">Less repetitive replies</div>
-    ${range('minP', 'Min-P', 0, 0.3, 0.01, 'cuts off weird words; 0.05 is a good start')}
+    <p class="hint" style="margin-top:2px">Leave these at 0 and off unless replies start looping. High values make characters talk strangely.</p>
+    ${range('minP', 'Min-P', 0, 0.3, 0.01, 'open models only')}
     ${range('freqPen', 'Repeat penalty', 0, 1, 0.05, 'discourages reusing words')}
     ${range('presPen', 'Variety push', 0, 1, 0.05, 'nudges toward new topics')}
     ${range('repPen', 'Repetition penalty (open models)', 1, 1.3, 0.01, '1.00 = off')}
@@ -1948,7 +2414,7 @@ function showSettings(back) {
     if (out) out.textContent = outFmt[k](el.value);
     const ev = el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input';
     el.addEventListener(ev, () => {
-      s[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : ['apiKey', 'model', 'baseUrl', 'imageModel'].includes(k) ? el.value.trim() : el.value;
+      s[k] = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : ['apiKey', 'model', 'baseUrl', 'imageModel', 'backupModel'].includes(k) ? el.value.trim() : el.value;
       if (out) out.textContent = outFmt[k](el.value);
       if (k === 'provider') applyProvider();
       if (k === 'textSize') applyTextSize();
@@ -1960,6 +2426,7 @@ function showSettings(back) {
   $('#btnShowKey').onclick = e => { const f = $('#s_apiKey'), show = f.type === 'password'; f.type = show ? 'text' : 'password'; e.target.textContent = show ? 'Hide' : 'Show'; };
   $('#btnModels').onclick = () => browseModels('chat');
   $('#btnImgModels').onclick = () => browseModels('image');
+  $('#btnBackupModels').onclick = () => browseModels('backup');
   $('#btnPaintAll').onclick = portraitAll;
   $('#btnGalleryAll').onclick = galleryAll;
   $('#btnTest').onclick = e => testConnection(e.target);
@@ -1986,7 +2453,7 @@ async function testConnection(btn) {
 }
 
 async function browseModels(kind) {
-  const s = state.settings, img = kind === 'image', key = img ? 'imageModel' : 'model';
+  const s = state.settings, img = kind === 'image', key = img ? 'imageModel' : kind === 'backup' ? 'backupModel' : 'model';
   if (img && s.provider !== 'openrouter') return toast('Pictures only work with OpenRouter', true);
   if (!img && !base()) return toast('Add the server URL first', true);
   const sh = openSheet(`<div class="sheet-head"><span style="width:64px"></span><b>${img ? 'Choose a picture model' : 'Choose a model'}</b><button class="text-btn" data-x>Close</button></div>
@@ -2059,8 +2526,8 @@ function sheetMenu(items, title) {
     items[+b.dataset.k][2]();
   };
 }
-function textSheet({ title, value, placeholder, save }) {
-  const sh = openSheet(`<div class="sheet-head"><button class="text-btn" data-x>Cancel</button><b>${esc(title)}</b><button class="text-btn strong" data-ok>Save</button></div>
+function textSheet({ title, value, placeholder, save, ok = 'Save' }) {
+  const sh = openSheet(`<div class="sheet-head"><button class="text-btn" data-x>Cancel</button><b>${esc(title)}</b><button class="text-btn strong" data-ok>${esc(ok)}</button></div>
     <textarea class="sheet-text" placeholder="${esc(placeholder || '')}">${esc(value || '')}</textarea>`);
   sh.classList.add('tall');
   $('[data-x]', sh).onclick = () => closeSheet();
@@ -2150,6 +2617,7 @@ async function importFile(file) {
   }
 }
 function addImported(c) {
+  if (looksUnderage(c)) return toast('Import blocked: Velvet only allows adult characters, and this card describes someone under 18.', true);
   state.chars.unshift(c);
   saveChars();
   toast(c.name + ' added');
@@ -2202,11 +2670,25 @@ async function init() {
     }
   } catch (e) { storageErr(e); }
   if (!state.settings.model) state.settings.model = DEFAULT_SETTINGS.model;
+  upgradeSettings(state.settings);
   applyTextSize();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if (state.settings.lockHash) showLock('unlock');
   if (state.chars.length) showHome(); else showDiscover();
   if (!state.settings.onboarded) welcome();
+  textFirst();
+}
+// first-version defaults made replies sound stilted (penalties pushed models off normal words); move untouched ones to the new defaults
+function upgradeSettings(s) {
+  if ((s.v || 1) >= 2) return;
+  if (s.systemPrompt === OLD_SYSTEM_1) s.systemPrompt = DEFAULT_SYSTEM;
+  if (s.avoid === OLD_AVOID_1) s.avoid = DEFAULT_AVOID;
+  if (s.freqPen === 0.3) s.freqPen = 0;
+  if (s.presPen === 0.2) s.presPen = 0;
+  if (s.minP === 0.05) s.minP = 0;
+  if (s.temperature === 1) s.temperature = 0.9;
+  s.v = 2;
+  saveSettings();
 }
 function welcome() {
   const sh = openSheet(`<div class="prof"><div class="logo" style="margin:0">Velvet</div><p class="tagline">Private AI characters, only on your phone.</p></div>

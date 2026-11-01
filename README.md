@@ -39,6 +39,20 @@ makes a bigger difference than any setting.
 - **Pictures**: tap "Give everyone a portrait" on Discover (about 36¢ for all 40), or "Make a picture" on any
   profile. In a chat, ⋯ → Ask for a picture paints the current moment. Pictures are made by OpenRouter's image
   models with your key (FLUX 3 Klein by default, about 1¢ each). Change the model and art style in Settings → Pictures.
+- **Natural chat feel**: a short "typing…" pause, then replies type out at a human pace (Settings → Immersion →
+  Typing speed), and new messages float in.
+- **Create with AI** (+ → Create a character with AI): describe a character in one line, and the AI writes the
+  whole card and paints their picture. Characters are always adults.
+- **Import from a Chub link** (+ → Import from a Chub link): paste a chub.ai character link.
+- **Refusal fix**: if a reply gets refused, Velvet quietly retries with the backup model (Settings → AI connection).
+- **They text you first**: come back after a while and characters you've been chatting with have messaged you
+  (Settings → Immersion). Texts show up when you open the app, since web apps can't send notifications by themselves.
+- **Pictures in chat**: characters sometimes send a photo on their own when the moment fits (about 1¢ each).
+- **Relationship levels** (the heart at the top of a chat): Strangers → Getting close → Crush → Dating → Lovers →
+  Soulmates. Every new level brings a special picture, which also goes into their gallery.
+- **Diary** (⋯ → their diary): private entries they write about you.
+- **Voice calls** (📞 at the top of a chat): talk out loud and hear them answer in their own voice. iPhone asks for
+  microphone and speech-recognition permission the first time. You can also type during a call.
 - **Group chats** (+ → Start a group chat): 2 to 6 characters in one scene. Say a name and that character answers.
   Tap a name above the message box to make them talk next. "Natural", "Take turns" or "Everyone" reply styles.
 - **Stories**: every character can have several opening scenarios. Start as many separate chats as you like (⋯ → All chats).
