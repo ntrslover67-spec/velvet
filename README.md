@@ -17,6 +17,9 @@ backup first (Settings → Export backup).
 2. Go to openrouter.ai/keys → **Create key** → copy it.
 3. In Velvet: **Settings** → paste the key → **Browse** → pick a model → **Test connection**.
 
+**Default model:** `deepseek/deepseek-v4.1-flash-1017`, the most-used roleplay model on OpenRouter (November 2026),
+at about 0.3¢ per reply. A cheaper alternative is `z-ai/glm-5.3-flash`.
+
 **Choosing a model:** on openrouter.ai/models, set **Categories → Roleplay** and sort by **Top Weekly**. Open-weight
 models (Llama, Mistral, Qwen, DeepSeek and their roleplay fine-tunes) usually handle adult scenes. Models from OpenAI,
 Anthropic and Google refuse explicit content. If a model gets prudish, dull or repetitive, try another one. That
@@ -26,8 +29,13 @@ makes a bigger difference than any setting.
 
 ## Features
 
-- **Discover**: 40 built-in characters (anime, fantasy, realistic, sci-fi, supernatural, plus an isekai narrator who
-  plays a whole world), each with their own voice, quirks and two stories to start from. Filter by category or search.
+- **Discover**: 63 built-in characters, each with their own voice, quirks and two stories to start from. They
+  include anime, fantasy, realistic, sci-fi and supernatural originals, an isekai narrator who plays a whole world,
+  14 adult anime fan favorites (Yor, Makima, Nico Robin, Boa Hancock, Nami, Tsunade, Esdeath, Albedo, Motoko,
+  Revy, Faye, Yoruichi, Chizuru, Rangiku) and 10 college characters (all 20 or older). Filter by category or search.
+- **Galleries**: tap any character to open their gallery. Paint expressions (smiling, blushing, sultry…), outfits and
+  scenes (date night, beach, gym, bedroom, mirror selfie…), or describe your own. Swipe through pictures, save them,
+  or set one as the profile picture. Settings → Pictures → "Fill every gallery" paints 4 for everyone.
 - **Pictures**: tap "Give everyone a portrait" on Discover (about 36¢ for all 40), or "Make a picture" on any
   profile. In a chat, ⋯ → Ask for a picture paints the current moment. Pictures are made by OpenRouter's image
   models with your key (FLUX 3 Klein by default, about 1¢ each). Change the model and art style in Settings → Pictures.

@@ -137,6 +137,25 @@ button.pick:active{background:var(--panel2)}
 .pic-btn small{color:var(--dim);font-weight:500}
 .pic-btn:disabled{opacity:.6}
 
+/* galleries */
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.gallery button{aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);padding:0}
+.gallery img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery .add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted);font-size:13px;font-weight:600}
+.gallery .add b{font-size:28px;font-weight:300;line-height:1}
+.gal-panel{padding:12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line);margin-bottom:12px}
+.gal-panel textarea{background:var(--panel)}
+.chip.sel{background:rgba(226,71,127,.22);border-color:rgba(226,71,127,.65);color:var(--text)}
+#lightbox{position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;padding:calc(var(--safe-t) + 56px) 8px calc(var(--safe-b) + 104px)}
+#lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px}
+#lightbox .lb-x{position:absolute;top:calc(var(--safe-t) + 8px);right:8px;width:44px;height:44px;font-size:22px;color:#fff}
+#lightbox .lb-bar{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(var(--safe-b) + 14px);display:flex;flex-direction:column;align-items:center;gap:10px}
+#lightbox .lb-bar span{color:#bbb;font-size:13px}
+#lightbox .lb-bar div{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#lightbox .lb-bar button{padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.13);color:#fff;font-size:14px;font-weight:600}
+#lightbox .lb-prev,#lightbox .lb-next{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:70px;font-size:34px;color:#fff;background:rgba(0,0,0,.35);border-radius:12px}
+#lightbox .lb-prev{left:4px}#lightbox .lb-next{right:4px}
+
 /* chat */
 .bg-wrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
 .chat-bg{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(44px) saturate(1.2);opacity:.22}
@@ -284,7 +303,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <script src="characters.js"></script>
 <script>
 'use strict';
-const VERSION = '2.1';
+const VERSION = '2.2';
 const OR_URL = 'https://openrouter.ai/api/v1';
 const LIBRARY = Array.isArray(window.VELVET_LIBRARY) ? window.VELVET_LIBRARY : [];
 const app = document.getElementById('app');
@@ -349,7 +368,7 @@ Intimate scenes: follow {{user}}'s lead and build tension instead of rushing. {{
 const DEFAULT_AVOID = ['shivers down the spine', 'barely above a whisper', 'a mix of', 'eyes sparkling with mischief', 'ministrations', 'a testament to', 'the air thick with', 'maybe, just maybe', "a breath they didn't know they were holding", 'padded over', 'pupils blown', 'a dance as old as time', 'jolt of electricity', 'waves of pleasure', 'smirks', 'half-lidded eyes', 'what feels like an eternity', 'voice husky with desire', 'the world fades away', "can't help but"].join('\n');
 
 const DEFAULT_SETTINGS = {
-  provider: 'openrouter', baseUrl: '', apiKey: '', model: '',
+  provider: 'openrouter', baseUrl: '', apiKey: '', model: 'deepseek/deepseek-v4.1-flash-1017',
   temperature: 1, maxTokens: 600, contextTokens: 16000, stream: true,
   minP: 0.05, freqPen: 0.3, presPen: 0.2, repPen: 1,
   avoid: DEFAULT_AVOID, autoMemory: true,
@@ -369,7 +388,7 @@ const STEER_PRESETS = [
   ['Softer', 'Be softer, warmer and more affectionate.'],
   ['Take charge', '{{char}} takes the lead and makes the next move.'],
 ];
-const CATS = ['All', 'Anime', 'Fantasy', 'Realistic', 'Sci-fi', 'Supernatural', 'Adventure', 'Female', 'Male', 'Non-binary', 'Dominant', 'Submissive', 'Slow burn', 'Comedy', 'Wholesome'];
+const CATS = ['All', 'Fan favorite', 'College', 'Anime', 'Fantasy', 'Realistic', 'Sci-fi', 'Supernatural', 'Adventure', 'Female', 'Male', 'Non-binary', 'Dominant', 'Submissive', 'Slow burn', 'Comedy', 'Wholesome'];
 const TEXT_SIZES = { s: '15px', m: '16px', l: '18px', xl: '20px' };
 
 /* ---------- storage (IndexedDB key/value) ---------- */
@@ -616,8 +635,7 @@ async function shrinkImage(blob, max = 768) {
 }
 const libImg = l => state.libImages[l.id] || (libHave(l) || {}).avatar || '';
 // x is a built-in library entry or one of your own characters
-async function makePortrait(x) {
-  const url = await imageToAvatar(await makeImage(portraitPrompt(x), '1:1'), 512);
+function setAvatar(x, url) {
   if (state.chars.includes(x)) {
     x.avatar = url;
     saveChars();
@@ -626,9 +644,115 @@ async function makePortrait(x) {
     state.libImages[x.id] = url;
     DB.set('img:' + x.id, url).catch(storageErr);
     const mine = libHave(x);
-    if (mine && !mine.avatar) { mine.avatar = url; saveChars(); }
+    if (mine) { mine.avatar = url; saveChars(); }
   }
+}
+async function makePortrait(x) {
+  const url = await imageToAvatar(await makeImage(portraitPrompt(x), '1:1'), 512);
+  setAvatar(x, url);
   return url;
+}
+
+/* galleries: extra pictures per character, stored under gal:<library id> or gal:c:<own character id> */
+const GALLERY_PRESETS = [ // [label, prompt, aspect, prompt for male characters]
+  ['Smiling', 'close-up portrait, warm genuine smile', '1:1'],
+  ['Blushing', 'close-up portrait, shy blushing face, glancing away', '1:1'],
+  ['Teasing wink', 'close-up portrait, playful wink and a teasing smirk', '1:1'],
+  ['Pouting', 'close-up portrait, pouting, annoyed but adorable', '1:1'],
+  ['Sultry look', 'close-up portrait, half-lidded sultry gaze, biting their lip', '1:1'],
+  ['Their world', 'three-quarter shot in their usual setting, doing what they love', '3:4'],
+  ['Date night', 'three-quarter shot in a stylish evening outfit at a candlelit restaurant', '3:4'],
+  ['Night out', 'full-body shot in a short sparkly party dress at a neon nightclub', '3:4', 'full-body shot in a fitted black shirt at a neon nightclub'],
+  ['Beach', 'full-body shot in a bikini on a sunny beach, confident pose', '3:4', 'full-body shot shirtless in swim trunks on a sunny beach, confident pose'],
+  ['Gym', 'full-body shot in a sports bra and leggings at the gym, toned', '3:4', 'full-body shot in a tank top and shorts at the gym, muscular'],
+  ['Cozy at home', 'full-body shot in an oversized sweater and shorts, curled up on a couch', '3:4'],
+  ['Mirror selfie', 'mirror selfie holding a phone, flirty pose, casual outfit', '3:4'],
+  ['Bedroom', 'full-body shot in lace lingerie sitting on a bed, warm dim lighting, alluring pose', '3:4', 'full-body shot shirtless in low-slung sweatpants sitting on a bed, warm dim lighting'],
+  ['Rainy night', 'three-quarter shot soaked in the rain under glowing city lights', '3:4'],
+];
+const isMale = c => (c.tags || []).includes('Male') || (c.voice && c.voice.gender === 'm');
+function galleryPrompt(c, preset, custom) {
+  const age = c.ageLabel || c.age || '';
+  const scene = custom || (isMale(c) && preset[3]) || preset[1];
+  return `${artFor(c)}. ${scene}. The character is an adult${age ? ` (age ${age})` : ''} with a mature face and body: ${lookOf(c)}. Single character, no text, no watermark.`;
+}
+const galCache = {};
+const galKeyOf = x => (x.libId ? x.libId : LIBRARY.includes(x) ? x.id : 'c:' + x.id);
+async function getGallery(key) {
+  if (!galCache[key]) galCache[key] = (await DB.get('gal:' + key).catch(() => null)) || [];
+  return galCache[key];
+}
+const saveGallery = key => DB.set('gal:' + key, galCache[key]).catch(storageErr);
+async function paintOne(x, job) {
+  const key = galKeyOf(x), list = await getGallery(key);
+  const url = await shrinkImage(await makeImage(galleryPrompt(x, job.preset, job.custom), job.custom ? '3:4' : job.preset[2]), 768);
+  list.push({ id: uid(), url, label: job.custom ? clip(job.custom, 40) : job.preset[0], ts: Date.now() });
+  saveGallery(key);
+}
+// runs jobs [{x, preset?, custom?}] a few at a time; stops early on key/credit/network trouble
+async function runPaintJobs(jobs, workers, onStep) {
+  const queue = [...jobs];
+  let ok = 0, refused = 0, failed = null;
+  const work = async () => {
+    while (queue.length && !failed) {
+      const j = queue.shift();
+      try { await paintOne(j.x, j); ok++; }
+      catch (e) { if ([401, 402, 429].includes(e.status) || e instanceof TypeError) failed = e; else refused++; }
+      if (onStep) onStep(ok + refused, ok);
+    }
+  };
+  await Promise.all(Array.from({ length: workers }, work));
+  return { ok, refused, failed };
+}
+const randomPresets = n => [...GALLERY_PRESETS].sort(() => Math.random() - 0.5).slice(0, n);
+async function galleryAll() {
+  if (state.portraitRun) return toast('Already painting. Hang on.');
+  if (!ready(showDiscover)) return;
+  const people = [...LIBRARY.filter(l => l.art !== 'scene'), ...state.chars.filter(c => !c.group && !c.libId)];
+  const jobs = [];
+  for (const x of people) {
+    const have = (await getGallery(galKeyOf(x))).length;
+    if (have >= 4) continue;
+    // a mix: two expressions and two scenes each
+    const faces = GALLERY_PRESETS.slice(0, 5).sort(() => Math.random() - 0.5), scenes = GALLERY_PRESETS.slice(5).sort(() => Math.random() - 0.5);
+    for (const p of [faces[0], scenes[0], faces[1], scenes[1]].slice(0, 4 - have)) jobs.push({ x, preset: p });
+  }
+  if (!jobs.length) return toast('Every gallery already has at least 4 pictures');
+  const cost = state.settings.imageModel === DEFAULT_IMAGE_MODEL ? ` About $${(jobs.length * 0.009).toFixed(2)}.` : '';
+  if (!confirm(`Paint ${jobs.length} gallery pictures (4 per character)?${cost} It takes a while. Keep Velvet open.`)) return;
+  state.portraitRun = true;
+  toast(`Painting galleries… 0/${jobs.length}`, false, 0);
+  const r = await runPaintJobs(jobs, 3, n => toast(`Painting galleries… ${n}/${jobs.length}`, false, 0));
+  state.portraitRun = false;
+  toast(r.failed ? `Stopped after ${r.ok}: ${niceError(r.failed)}` : `${r.ok} pictures added` + (r.refused ? ` (${r.refused} refused by the picture model)` : ''), !!r.failed);
+}
+function lightbox(list, idx, x, onChange) {
+  const el = document.createElement('div');
+  el.id = 'lightbox';
+  document.body.append(el);
+  const draw = () => {
+    if (!list.length) return el.remove();
+    idx = (idx + list.length) % list.length;
+    const g = list[idx];
+    el.innerHTML = `<button class="lb-x" data-x aria-label="Close">✕</button><img src="${g.url}" alt="${esc(g.label)}">
+      ${list.length > 1 ? '<button class="lb-prev" data-p aria-label="Previous">‹</button><button class="lb-next" data-n aria-label="Next">›</button>' : ''}
+      <div class="lb-bar"><span>${esc(g.label)} · ${idx + 1} of ${list.length}</span><div><button data-a="avatar">Make profile picture</button><button data-a="save">Save</button><button data-a="del">Delete</button></div></div>`;
+  };
+  draw();
+  el.onclick = async e => {
+    if (e.target.closest('[data-x]') || e.target === el) return el.remove();
+    if (e.target.closest('[data-p]')) { idx--; return draw(); }
+    if (e.target.closest('[data-n]')) { idx++; return draw(); }
+    const a = e.target.closest('[data-a]');
+    if (!a) return;
+    const g = list[idx], blob = await dataUrlBlob(g.url);
+    if (a.dataset.a === 'avatar') { setAvatar(x, await imageToAvatar(blob, 512)); toast('Profile picture updated'); onChange(); }
+    if (a.dataset.a === 'save') shareFile(blob, `${x.name.replace(/[^\w-]+/g, '_')}_${idx + 1}.jpg`, 'image/jpeg');
+    if (a.dataset.a === 'del' && confirm('Delete this picture?')) { list.splice(idx, 1); saveGallery(galKeyOf(x)); onChange(); draw(); }
+  };
+  let t0 = null;
+  el.addEventListener('touchstart', e => { t0 = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener('touchend', e => { if (t0 == null) return; const dx = e.changedTouches[0].clientX - t0; t0 = null; if (Math.abs(dx) > 50) { idx += dx < 0 ? 1 : -1; draw(); } }, { passive: true });
 }
 async function portraitAll() {
   if (state.portraitRun) return toast('Already painting. Hang on.');
@@ -1198,43 +1322,95 @@ function showDiscover() {
     $$('#cats .chip').forEach(x => x.classList.toggle('on', x === b));
     draw();
   };
-  $('#grid').onclick = e => { const b = e.target.closest('[data-id]'); if (b) showProfile(LIBRARY.find(l => l.id === b.dataset.id)); };
+  $('#grid').onclick = e => { const b = e.target.closest('[data-id]'); if (b) showCharSheet(LIBRARY.find(l => l.id === b.dataset.id)); };
 }
 
 const refreshDiscover = () => { if (state.view === 'discover' && state.discoverDraw && $('#grid')) state.discoverDraw(); };
 const sceneButtons = (c, scenes) => scenes.map((s, k) => `<button class="scene" data-k="${k}"><span><b>${esc(s.title)}</b><small>${esc(clip(fill(s.scenario, c), 140))}</small></span><i>Start</i></button>`).join('');
 
-function showProfile(lib) {
-  const mine = libHave(lib), has = mine && chatsOf(mine).length;
-  const pic = () => avatarHtml({ ...lib, avatar: libImg(lib) }, 'av96');
+// profile for a built-in character or one of your own: picture, gallery, bio and stories
+async function showCharSheet(x, back) {
+  const from = state.view, cur = state.current;
+  back = back || (from === 'chat' ? () => showChat(cur) : from === 'discover' ? showDiscover : showHome);
+  const isLib = LIBRARY.includes(x), lib = isLib ? x : x.libId && LIBRARY.find(l => l.id === x.libId);
+  const mine = isLib ? libHave(x) : x, src = mine || x;
+  const person = src.art !== 'scene', gal = await getGallery(galKeyOf(src));
+  const has = mine && chatsOf(mine).length;
+  const picUrl = () => (mine && mine.avatar) || (lib && libImg(lib)) || '';
+  const pic = () => avatarHtml({ ...src, avatar: picUrl() }, 'av96');
+  const picLabel = () => (picUrl() ? 'New profile picture' : 'Make a picture');
+  const age = (lib && lib.age) || src.ageLabel || '';
+  const bio = (lib && lib.bio) || src.bio || clip(plain(src.personality), 260);
   const sh = openSheet(`<div class="sheet-body">
-    <div class="prof"><span id="profPic">${pic()}</span><button class="pic-btn" data-pic>${ICON.image.replace('<svg', '<svg width="16" height="16"')} <span>${libImg(lib) ? 'New picture' : 'Make a picture'}</span> <small>~1¢</small></button>
-      <h3>${esc(lib.name)}${lib.age ? `<small> · ${esc(lib.age)}</small>` : ''}</h3><p class="tagline">${esc(lib.tagline)}</p>
-      <div class="tagrow">${lib.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div><p class="bio">${esc(fill(lib.bio, lib))}</p></div>
+    <div class="prof"><span id="profPic">${pic()}</span><button class="pic-btn" data-pic>${ICON.image.replace('<svg', '<svg width="16" height="16"')} <span>${picLabel()}</span> <small>~1¢</small></button>
+      <h3>${esc(src.name)}${age ? `<small> · ${esc(age)}</small>` : ''}</h3><p class="tagline">${esc(src.tagline)}</p>
+      <div class="tagrow">${src.tags.map(t => `<span>${esc(t)}</span>`).join('')}</div><p class="bio">${esc(fill(bio, src))}</p></div>
+    ${person ? `<div class="section">Gallery <em id="galCount"></em></div><div class="gallery" id="gal"></div>
+    <div class="gal-panel" id="galPanel" hidden>
+      <div class="chips wrap" id="galChips">${GALLERY_PRESETS.map((p, k) => `<button class="chip" data-gp="${k}">${esc(p[0])}</button>`).join('')}<button class="chip" data-gp="rand">🎲 Surprise me</button></div>
+      <textarea id="galCustom" rows="2" placeholder="Or describe your own, e.g. in a red dress at a masquerade ball"></textarea>
+      <button class="btn primary" id="galGo" style="margin:10px 0 0"></button>
+    </div>` : ''}
     ${has ? '<button class="btn primary" data-continue>Continue your chat</button>' : ''}
+    ${mine && !mine.group ? `<button class="btn" data-edit>${ICON.edit.replace('<svg', '<svg width="17" height="17"')} Edit character</button>` : ''}
     <div class="section">${has ? 'Or start a new story' : 'Pick a story to start'}</div>
-    ${sceneButtons(lib, lib.scenes)}
+    ${sceneButtons(src, src.scenes)}
   </div>`);
   sh.classList.add('tall');
+  const drawGal = () => {
+    if (!person) return;
+    $('#galCount', sh).textContent = gal.length ? `${gal.length} picture${gal.length > 1 ? 's' : ''}` : 'tap + to paint some';
+    $('#gal', sh).innerHTML = gal.map((g, k) => `<button data-gi="${k}"><img src="${g.url}" alt="${esc(g.label)}" loading="lazy"></button>`).join('') + '<button class="add" data-gadd><b>+</b>More</button>';
+  };
+  const updateGo = () => {
+    const n = $$('#galChips .chip.sel', sh).length + ($('#galCustom', sh).value.trim() ? 1 : 0), b = $('#galGo', sh);
+    b.disabled = !n;
+    b.textContent = n ? `Paint ${n} picture${n > 1 ? 's' : ''} (~${n}¢)` : 'Pick some above, or describe one';
+  };
+  const refreshPic = () => { $('#profPic', sh).innerHTML = pic(); $('[data-pic] span', sh).textContent = picLabel(); refreshDiscover(); };
+  if (person) { drawGal(); updateGo(); $('#galCustom', sh).oninput = updateGo; }
   sh.onclick = async e => {
     const pb = e.target.closest('[data-pic]');
     if (pb) {
-      if (!ready(showDiscover)) return;
+      if (!ready(back)) return;
       pb.disabled = true; $('span', pb).textContent = 'Painting…';
-      try {
-        const target = libHave(lib) || lib;
-        if (target !== lib) target.avatar = ''; // a new picture replaces the old one
-        await makePortrait(target);
-        $('#profPic', sh).innerHTML = pic();
-        refreshDiscover();
-      } catch (err) { toast(niceError(err), true); }
-      pb.disabled = false; $('span', pb).textContent = libImg(lib) ? 'New picture' : 'Make a picture';
+      try { await makePortrait(mine || x); } catch (err) { toast(niceError(err), true); }
+      pb.disabled = false; refreshPic();
+      return;
+    }
+    const gi = e.target.closest('[data-gi]');
+    if (gi) return lightbox(gal, +gi.dataset.gi, mine || x, () => { drawGal(); refreshPic(); });
+    if (e.target.closest('[data-gadd]')) { const p = $('#galPanel', sh); p.hidden = !p.hidden; if (!p.hidden) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
+    const gp = e.target.closest('[data-gp]');
+    if (gp) {
+      if (gp.dataset.gp === 'rand') {
+        const pick = new Set(randomPresets(4).map(p => GALLERY_PRESETS.indexOf(p)));
+        $$('#galChips [data-gp]', sh).forEach(c => c.classList.toggle('sel', pick.has(+c.dataset.gp)));
+      } else gp.classList.toggle('sel');
+      return updateGo();
+    }
+    const go = e.target.closest('#galGo');
+    if (go) {
+      if (!ready(back)) return;
+      const jobs = $$('#galChips .chip.sel', sh).map(c => ({ x: mine || x, preset: GALLERY_PRESETS[+c.dataset.gp] }));
+      const custom = $('#galCustom', sh).value.trim();
+      if (custom) jobs.push({ x: mine || x, custom });
+      go.disabled = true; go.textContent = `Painting 0/${jobs.length}…`;
+      const r = await runPaintJobs(jobs, 2, n => { go.textContent = `Painting ${n}/${jobs.length}…`; drawGal(); });
+      drawGal();
+      $$('#galChips .chip.sel', sh).forEach(c => c.classList.remove('sel'));
+      $('#galCustom', sh).value = '';
+      updateGo();
+      if (r.failed) toast(niceError(r.failed), true);
+      else if (r.refused) toast(`${r.ok} painted, ${r.refused} refused by the picture model. Try rewording, or another picture model in Settings.`, true);
+      else toast(`${r.ok} picture${r.ok === 1 ? '' : 's'} added`);
       return;
     }
     if (e.target.closest('[data-continue]')) { closeSheet(true); openChar(mine); return; }
+    if (e.target.closest('[data-edit]')) { closeSheet(true); showEdit(mine.id, back); return; }
     const b = e.target.closest('[data-k]');
     if (!b) return;
-    const c = adopt(lib);
+    const c = isLib ? adopt(x) : x;
     closeSheet(true);
     showChat(newChat(c, c.scenes[+b.dataset.k]).id);
   };
@@ -1295,7 +1471,7 @@ function showChat(id) {
   $('#btnIdea').onmousedown = e => e.preventDefault();
   $('#btnIdea').onclick = suggestReplies;
   $('#btnBack').onclick = showHome;
-  $('#btnInfo').onclick = () => showEdit(c.id, () => showChat(id));
+  $('#btnInfo').onclick = () => (c.group ? showGroupEdit(c.id, () => showChat(id)) : showCharSheet(c, () => showChat(id)));
   $('#btnMenu').onclick = chatMenu;
   $('#extras').onclick = e => {
     if (e.target.closest('#btnSteerPill')) return steerSheet();
@@ -1573,6 +1749,7 @@ function showEdit(id, back) {
       if (!confirm(`Delete ${orig.name} and every chat with them? This can't be undone.`)) return;
       for (const ch of chatsOf(orig)) { delete state.chats[ch.id]; saveChat(ch.id); }
       for (const g of state.chars) if (g.group) g.members = g.members.filter(m => m !== id);
+      if (!orig.libId) { DB.del('gal:c:' + id).catch(storageErr); delete galCache['c:' + id]; }
       state.chars = state.chars.filter(x => x.id !== id);
       saveChars();
       showHome();
@@ -1676,6 +1853,7 @@ function showSettings(back) {
     <div class="field"><span>API key</span><div class="inline"><input id="s_apiKey" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn" id="btnShowKey" type="button">Show</button></div></div>
     <p class="hint" id="keyHint"></p>
     <div class="field"><span>Model</span><div class="inline"><input id="s_model" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Tap Browse to pick one"><button class="btn" id="btnModels" type="button">Browse</button></div></div>
+    <p class="hint">Recommended: deepseek/deepseek-v4.1-flash-1017 (the default; top roleplay model on OpenRouter, about 0.3¢ per reply). Cheaper: z-ai/glm-5.3-flash. If a model turns prudish or repetitive, try another one.</p>
     <button class="btn" id="btnTest">Test connection</button>
 
     <div class="section">You</div>
@@ -1707,7 +1885,8 @@ function showSettings(back) {
     <div class="field"><span>Picture model</span><div class="inline"><input id="s_imageModel" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${DEFAULT_IMAGE_MODEL}"><button class="btn" id="btnImgModels" type="button">Browse</button></div></div>
     <label class="field"><span>Art style</span><select id="s_imageStyle"><option value="match">Match each character</option><option value="anime">Anime for everyone</option><option value="painted">Painted for everyone</option><option value="photo">Photo-realistic for everyone</option></select></label>
     <button class="btn" id="btnPaintAll">🎨 Paint portraits for everyone missing one</button>
-    <p class="hint">Pictures are made by OpenRouter with your key, about 1¢ each with the default model (FLUX 3 Klein). In a chat, ⋯ → Ask for a picture shows the current moment. Picture models keep things fairly tasteful and may refuse very explicit scenes.</p>
+    <button class="btn" id="btnGalleryAll">🖼️ Fill every gallery (4 pictures each)</button>
+    <p class="hint">Pictures are made by OpenRouter with your key, about 1¢ each with the default model (FLUX 3 Klein). Tap a character to open their gallery and paint expressions, outfits and scenes, or describe your own. In a chat, ⋯ → Ask for a picture paints the current moment. Picture models may refuse very explicit requests. Gallery pictures stay on this phone and aren't included in backups.</p>
 
     <div class="section">Display</div>
     <label class="field"><span>Chat text size</span><select id="s_textSize"><option value="s">Small</option><option value="m">Medium</option><option value="l">Large</option><option value="xl">Extra large</option></select></label>
@@ -1755,6 +1934,7 @@ function showSettings(back) {
   $('#btnModels').onclick = () => browseModels('chat');
   $('#btnImgModels').onclick = () => browseModels('image');
   $('#btnPaintAll').onclick = portraitAll;
+  $('#btnGalleryAll').onclick = galleryAll;
   $('#btnTest').onclick = e => testConnection(e.target);
   $('#btnResetPrompt').onclick = () => { if (!confirm('Put the default roleplay instructions back?')) return; s.systemPrompt = DEFAULT_SYSTEM; $('#s_systemPrompt').value = DEFAULT_SYSTEM; saveSettings(); };
   $('#btnResetAvoid').onclick = () => { s.avoid = DEFAULT_AVOID; $('#s_avoid').value = DEFAULT_AVOID; saveSettings(); };
@@ -1994,6 +2174,7 @@ async function init() {
       if (c.libId && !c.avatar && state.libImages[c.libId]) c.avatar = state.libImages[c.libId];
     }
   } catch (e) { storageErr(e); }
+  if (!state.settings.model) state.settings.model = DEFAULT_SETTINGS.model;
   applyTextSize();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if (state.settings.lockHash) showLock('unlock');
