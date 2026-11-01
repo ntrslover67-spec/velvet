@@ -303,7 +303,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <script src="characters.js"></script>
 <script>
 'use strict';
-const VERSION = '2.2';
+const VERSION = '2.3';
 const OR_URL = 'https://openrouter.ai/api/v1';
 const LIBRARY = Array.isArray(window.VELVET_LIBRARY) ? window.VELVET_LIBRARY : [];
 const app = document.getElementById('app');
@@ -689,20 +689,47 @@ async function paintOne(x, job) {
   list.push({ id: uid(), url, label: job.custom ? clip(job.custom, 40) : job.preset[0], ts: Date.now() });
   saveGallery(key);
 }
+// keeps the screen on while pictures are painting (iPhone pauses the app if it locks)
+const awake = { lock: null, jobs: 0, warned: false, asking: false };
+async function grabWakeLock() {
+  if (awake.lock || awake.asking || !awake.jobs || document.hidden) return;
+  awake.asking = true;
+  try {
+    const lock = await navigator.wakeLock.request('screen');
+    if (!awake.jobs) { lock.release().catch(() => {}); return; } // painting ended while we were asking
+    awake.lock = lock;
+    lock.addEventListener('release', () => { if (awake.lock === lock) awake.lock = null; });
+  } catch {
+    if (!awake.warned) { awake.warned = true; toast('Keep the screen on while it paints (iPhone Settings → Display & Brightness → Auto-Lock → Never).', false, 6000); }
+  } finally { awake.asking = false; }
+}
+async function whileAwake(fn) {
+  awake.jobs++;
+  grabWakeLock();
+  try { return await fn(); }
+  finally {
+    awake.jobs--;
+    if (!awake.jobs && awake.lock) { awake.lock.release().catch(() => {}); awake.lock = null; }
+  }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) grabWakeLock(); }); // iOS drops the lock when the app is hidden
+
 // runs jobs [{x, preset?, custom?}] a few at a time; stops early on key/credit/network trouble
-async function runPaintJobs(jobs, workers, onStep) {
-  const queue = [...jobs];
-  let ok = 0, refused = 0, failed = null;
-  const work = async () => {
-    while (queue.length && !failed) {
-      const j = queue.shift();
-      try { await paintOne(j.x, j); ok++; }
-      catch (e) { if ([401, 402, 429].includes(e.status) || e instanceof TypeError) failed = e; else refused++; }
-      if (onStep) onStep(ok + refused, ok);
-    }
-  };
-  await Promise.all(Array.from({ length: workers }, work));
-  return { ok, refused, failed };
+function runPaintJobs(jobs, workers, onStep) {
+  return whileAwake(async () => {
+    const queue = [...jobs];
+    let ok = 0, refused = 0, failed = null;
+    const work = async () => {
+      while (queue.length && !failed) {
+        const j = queue.shift();
+        try { await paintOne(j.x, j); ok++; }
+        catch (e) { if ([401, 402, 429].includes(e.status) || e instanceof TypeError) failed = e; else refused++; }
+        if (onStep) onStep(ok + refused, ok);
+      }
+    };
+    await Promise.all(Array.from({ length: workers }, work));
+    return { ok, refused, failed };
+  });
 }
 const randomPresets = n => [...GALLERY_PRESETS].sort(() => Math.random() - 0.5).slice(0, n);
 async function galleryAll() {
@@ -773,7 +800,7 @@ async function portraitAll() {
     }
   };
   toast(`Painting portraits… 0/${todo.length}`, false, 0);
-  await Promise.all([worker(), worker(), worker()]); // three at a time
+  await whileAwake(() => Promise.all([worker(), worker(), worker()])); // three at a time
   state.portraitRun = false;
   if (failed) toast(`Stopped after ${done}: ${niceError(failed)}`, true);
   else toast(`${done} portrait${done === 1 ? '' : 's'} done` + (done < todo.length ? ` (${todo.length - done} were refused; try those again)` : ''));
@@ -792,7 +819,7 @@ async function scenePicture() {
   state.busy = true;
   renderMessages(); setBusyUI(true, sp); scrollBottom();
   try {
-    m.image = await shrinkImage(await makeImage(scenePrompt(sp, chat, lastBot), '3:4'), 768);
+    m.image = await whileAwake(async () => shrinkImage(await makeImage(scenePrompt(sp, chat, lastBot), '3:4'), 768));
     m.swipes = ['*sends a picture*'];
   } catch (e) {
     chat.messages.splice(chat.messages.indexOf(m), 1);
@@ -1374,7 +1401,7 @@ async function showCharSheet(x, back) {
     if (pb) {
       if (!ready(back)) return;
       pb.disabled = true; $('span', pb).textContent = 'Painting…';
-      try { await makePortrait(mine || x); } catch (err) { toast(niceError(err), true); }
+      try { await whileAwake(() => makePortrait(mine || x)); } catch (err) { toast(niceError(err), true); }
       pb.disabled = false; refreshPic();
       return;
     }
@@ -1886,7 +1913,7 @@ function showSettings(back) {
     <label class="field"><span>Art style</span><select id="s_imageStyle"><option value="match">Match each character</option><option value="anime">Anime for everyone</option><option value="painted">Painted for everyone</option><option value="photo">Photo-realistic for everyone</option></select></label>
     <button class="btn" id="btnPaintAll">🎨 Paint portraits for everyone missing one</button>
     <button class="btn" id="btnGalleryAll">🖼️ Fill every gallery (4 pictures each)</button>
-    <p class="hint">Pictures are made by OpenRouter with your key, about 1¢ each with the default model (FLUX 3 Klein). Tap a character to open their gallery and paint expressions, outfits and scenes, or describe your own. In a chat, ⋯ → Ask for a picture paints the current moment. Picture models may refuse very explicit requests. Gallery pictures stay on this phone and aren't included in backups.</p>
+    <p class="hint">Velvet keeps your screen on while it paints. Leave it open on screen until painting finishes. Pictures are made by OpenRouter with your key, about 1¢ each with the default model (FLUX 3 Klein). Tap a character to open their gallery and paint expressions, outfits and scenes, or describe your own. In a chat, ⋯ → Ask for a picture paints the current moment. Picture models may refuse very explicit requests. Gallery pictures stay on this phone and aren't included in backups.</p>
 
     <div class="section">Display</div>
     <label class="field"><span>Chat text size</span><select id="s_textSize"><option value="s">Small</option><option value="m">Medium</option><option value="l">Large</option><option value="xl">Extra large</option></select></label>
